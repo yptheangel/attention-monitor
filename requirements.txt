@@ -1,0 +1,7 @@
+dlib~=19.19.0
+opencv-python~=4.2.0.34
+torchvision~=0.6.0
+torch~=1.5.0
+numpy~=1.18.4
+imutils~=0.5.3
+pillow~=7.1.2
