@@ -15,5 +15,8 @@ TODO:
 
 ### References
 
-Boilerplate opencv python code, read frame from webcam, image, video.
-[Show me the code](https://github.com/yptheangel/opencv-starter-pack/tree/master/python/basic)
+- Boilerplate opencv python code, read frame from webcam, image, video. [Show me the code](https://github.com/yptheangel/opencv-starter-pack/tree/master/python/basic)
+- [Hopenet](https://github.com/natanielruiz/deep-head-pose) by *Nataniel Ruiz*
+- [PyImageSearch](https://www.pyimagesearch.com/2017/04/03/facial-landmarks-dlib-opencv-python/) Facial landmarks with dlib, OpenCV, and Python
+- [PyImageSearch](https://www.pyimagesearch.com/2017/05/08/drowsiness-detection-opencv/) Drowsiness detection with OpenCV 
+
