@@ -3,10 +3,8 @@ import cv2
 import torchvision
 from imutils import face_utils
 import torch
-import numpy as np
 from PIL import Image
 from torchvision import transforms
-from math import cos, sin
 import torch.nn.functional as F
 
 from src import hopenet
