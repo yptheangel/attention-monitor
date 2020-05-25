@@ -55,20 +55,21 @@ def main():
         img_shape = img.size()
         img = img.view(1, img_shape[0], img_shape[1], img_shape[2])
 
-        yaw, pitch, roll = model(img)
+        with torch.no_grad():
+            yaw, pitch, roll = model(img)
 
-        yaw_predicted = F.softmax(yaw, dim=1)
-        pitch_predicted = F.softmax(pitch, dim=1)
-        roll_predicted = F.softmax(roll, dim=1)
-        # Get continuous predictions in degrees.
-        yaw_predicted = torch.sum(yaw_predicted.data.view(-1) * idx_tensor) * 3 - 99
-        pitch_predicted = torch.sum(pitch_predicted.view(-1) * idx_tensor) * 3 - 99
-        roll_predicted = torch.sum(roll_predicted.view(-1) * idx_tensor) * 3 - 99
+            yaw_predicted = F.softmax(yaw, dim=1)
+            pitch_predicted = F.softmax(pitch, dim=1)
+            roll_predicted = F.softmax(roll, dim=1)
+            # Get continuous predictions in degrees.
+            yaw_predicted = torch.sum(yaw_predicted.data.view(-1) * idx_tensor) * 3 - 99
+            pitch_predicted = torch.sum(pitch_predicted.view(-1) * idx_tensor) * 3 - 99
+            roll_predicted = torch.sum(roll_predicted.view(-1) * idx_tensor) * 3 - 99
 
         # plot_pose_cube(frame, yaw_predicted, pitch_predicted, roll_predicted, tdx=int(center_x), tdy=int(center_y),
         #                size=100)
 
-        draw_axis(frame, yaw_predicted, pitch_predicted, roll_predicted, tdx=int(center_x), tdy=int(center_y), size=100)
+        draw_axis(frame, yaw_predicted.numpy(), pitch_predicted.numpy(), roll_predicted.numpy(), tdx=int(center_x), tdy=int(center_y), size=100)
 
         cv2.imshow('frame', cv2.cvtColor(frame, cv2.COLOR_RGB2BGR))
         if cv2.waitKey(1) & 0xFF == ord('q'):
