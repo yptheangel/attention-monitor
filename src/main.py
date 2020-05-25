@@ -6,9 +6,9 @@ import torch
 from PIL import Image
 from torchvision import transforms
 import torch.nn.functional as F
-
-from src import hopenet
-from src.utils import *
+import hopenet
+from utils import *
+from scipy.spatial import distance as dist
 
 p = "../model/shape_predictor_68_face_landmarks.dat"
 detector = dlib.get_frontal_face_detector()
@@ -26,8 +26,37 @@ transformations = transforms.Compose([transforms.Resize(224),
 idx_tensor = [idx for idx in range(66)]
 idx_tensor = torch.FloatTensor(idx_tensor)
 
+def eye_aspect_ratio(eye):
+    # compute the euclidean distances between the two sets of
+    # vertical eye landmarks (x, y)-coordinates
+    A = dist.euclidean(eye[1], eye[5])
+    B = dist.euclidean(eye[2], eye[4])
+    # compute the euclidean distance between the horizontal
+    # eye landmark (x, y)-coordinates
+    C = dist.euclidean(eye[0], eye[3])
+    # compute the eye aspect ratio
+    ear = (A + B) / (2.0 * C)
+    # return the eye aspect ratio
+    return ear
+
+def mouth_aspect_ratio(mouth):
+    # compute the euclidean distances between the two sets of
+    # vertical eye landmarks (x, y)-coordinates
+    A = dist.euclidean(mouth[2], mouth[6])
+    # compute the euclidean distance between the horizontal
+    # eye landmark (x, y)-coordinates
+    B = dist.euclidean(mouth[0], mouth[4])
+    # compute the eye aspect ratio
+    mar = A  / B
+    # return the eye aspect ratio
+    return mar
+
 def main():
     cap = cv2.VideoCapture(0)
+    blinkCount = 0
+    yawnCount = 0
+    yawning=False
+    eyeClosed=False
 
     while (True):
         ret, frame = cap.read()
@@ -41,8 +70,43 @@ def main():
         for (i, rect) in enumerate(rects):
             shape = predictor(gray, rect)
             shape = face_utils.shape_to_np(shape)
-            for (x, y) in shape:
-                cv2.circle(frame, (x, y), 2, (0, 255, 0), -1)
+
+            leftEye = shape[36:42]
+            # print(f"leftEye{leftEye}")
+            rightEye = shape[42:48]
+            # print(f"righti{rightEye}")
+            leftEAR = eye_aspect_ratio(leftEye)
+            rightEAR = eye_aspect_ratio(rightEye)
+            # average the eye aspect ratio together for both eyes
+            ear = (leftEAR + rightEAR) / 2.0
+            # print(ear)
+            mar = mouth_aspect_ratio(shape[60:69])
+            # print(mar)
+
+            if ear < 0.15:
+                eyeClosed=True
+            if ear > 0.15 and eyeClosed:
+                blinkCount+=1
+                eyeClosed=False
+            cv2.putText(frame,"Blink Count: "+str(blinkCount),(10,30),fontFace=cv2.FONT_HERSHEY_SIMPLEX, fontScale=1.0, color=(255,0,0), thickness=2)
+            
+            if mar > 0.4:
+                cv2.putText(frame,"Yawning! ",(10,90),fontFace=cv2.FONT_HERSHEY_SIMPLEX, fontScale=1.0, color=(255,0,0), thickness=2)
+                yawning = True
+            if mar < 0.2 and yawning:
+                yawnCount+=1
+                yawning=False
+            cv2.putText(frame,"Yawn Count: "+str(yawnCount),(10,60),fontFace=cv2.FONT_HERSHEY_SIMPLEX, fontScale=1.0, color=(255,0,0), thickness=2)
+            
+            # Draw circle to show landmarks
+            for idx,(x, y) in enumerate(shape):
+                if idx in range(36,48):
+                    cv2.circle(frame, (x, y), 2, (0, 255, 0), -1)
+                elif idx in range(60,68):
+                    cv2.circle(frame, (x, y), 2, (0, 0, 255), -1)
+                # Uncomment if you want to visualize all other landmarks
+                # else:
+                #     cv2.circle(frame, (x, y), 2, (255, 0, 0), -1)
 
         roi_box, center_x, center_y = rec_to_roi_box(rect)
 
