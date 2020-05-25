@@ -1,5 +1,6 @@
 .idea
 model/*
+!model/put_your_model_here.txt
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
