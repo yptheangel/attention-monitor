@@ -10,6 +10,8 @@ import hopenet
 from utils import *
 from scipy.spatial import distance as dist
 
+import vispy_realtime_test
+
 p = "../model/shape_predictor_68_face_landmarks.dat"
 detector = dlib.get_frontal_face_detector()
 predictor = dlib.shape_predictor(p)
@@ -57,8 +59,10 @@ def main():
     yawnCount = 0
     yawning=False
     eyeClosed=False
+    canvas = vispy_realtime_test.Canvas(1, 1, 1000, 0)
 
-    while (True):
+    while True:
+
         ret, frame = cap.read()
         frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         frame = cv2.flip(frame,1)
@@ -93,6 +97,8 @@ def main():
             if mar > 0.4:
                 cv2.putText(frame,"Yawning! ",(10,90),fontFace=cv2.FONT_HERSHEY_SIMPLEX, fontScale=1.0, color=(255,0,0), thickness=2)
                 yawning = True
+                canvas.set_data(1)
+
             if mar < 0.2 and yawning:
                 yawnCount+=1
                 yawning=False
