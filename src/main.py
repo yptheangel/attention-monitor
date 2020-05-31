@@ -151,9 +151,9 @@ def main():
         # plot_pose_cube(frame, yaw_predicted, pitch_predicted, roll_predicted, tdx=int(center_x), tdy=int(center_y),
         #                size=100)
 
-            draw_axis(frame, yaw_predicted.numpy(), pitch_predicted.numpy(), roll_predicted.numpy(), tdx=int(center_x), tdy=int(center_y), size=100)
+                draw_axis(frame, yaw_predicted.numpy(), pitch_predicted.numpy(), roll_predicted.numpy(), tdx=int(center_x), tdy=int(center_y), size=100)
     
-            cv2.imshow('frame', cv2.cvtColor(frame, cv2.COLOR_RGB2BGR))
+                cv2.imshow('frame', cv2.cvtColor(frame, cv2.COLOR_RGB2BGR))
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
 
