@@ -59,7 +59,7 @@ def main():
     yawnCount = 0
     yawning=False
     eyeClosed=False
-    canvas = vispy_realtime_test.Canvas(1, 1, 1000, 0)
+    # canvas = vispy_realtime_test.Canvas(1, 1, 1000, 0)
 
     while True:
 
@@ -97,7 +97,7 @@ def main():
             if mar > 0.4:
                 cv2.putText(frame,"Yawning! ",(10,90),fontFace=cv2.FONT_HERSHEY_SIMPLEX, fontScale=1.0, color=(255,0,0), thickness=2)
                 yawning = True
-                canvas.set_data(1)
+                # canvas.set_data(1)
 
             if mar < 0.2 and yawning:
                 yawnCount+=1
@@ -114,32 +114,37 @@ def main():
                 # else:
                 #     cv2.circle(frame, (x, y), 2, (255, 0, 0), -1)
 
-        roi_box, center_x, center_y = rec_to_roi_box(rect)
+        try:
+            roi_box, center_x, center_y = rec_to_roi_box(rect)
 
-        roi_img = crop_img(frame, roi_box)
+            roi_img = crop_img(frame, roi_box)
 
-        img = Image.fromarray(roi_img)
+            img = Image.fromarray(roi_img)
 
-        # Transform
-        img = transformations(img)
-        img_shape = img.size()
-        img = img.view(1, img_shape[0], img_shape[1], img_shape[2])
+            # Transform
+            img = transformations(img)
+            img_shape = img.size()
+            img = img.view(1, img_shape[0], img_shape[1], img_shape[2])
 
-        with torch.no_grad():
-            yaw, pitch, roll = model(img)
+            with torch.no_grad():
+                yaw, pitch, roll = model(img)
 
-            yaw_predicted = F.softmax(yaw, dim=1)
-            pitch_predicted = F.softmax(pitch, dim=1)
-            roll_predicted = F.softmax(roll, dim=1)
-            # Get continuous predictions in degrees.
-            yaw_predicted = torch.sum(yaw_predicted.data.view(-1) * idx_tensor) * 3 - 99
-            pitch_predicted = torch.sum(pitch_predicted.view(-1) * idx_tensor) * 3 - 99
-            roll_predicted = torch.sum(roll_predicted.view(-1) * idx_tensor) * 3 - 99
+                yaw_predicted = F.softmax(yaw, dim=1)
+                pitch_predicted = F.softmax(pitch, dim=1)
+                roll_predicted = F.softmax(roll, dim=1)
+                # Get continuous predictions in degrees.
+                yaw_predicted = torch.sum(yaw_predicted.data.view(-1) * idx_tensor) * 3 - 99
+                pitch_predicted = torch.sum(pitch_predicted.view(-1) * idx_tensor) * 3 - 99
+                roll_predicted = torch.sum(roll_predicted.view(-1) * idx_tensor) * 3 - 99
 
-        # plot_pose_cube(frame, yaw_predicted, pitch_predicted, roll_predicted, tdx=int(center_x), tdy=int(center_y),
-        #                size=100)
+            # plot_pose_cube(frame, yaw_predicted, pitch_predicted, roll_predicted, tdx=int(center_x), tdy=int(center_y),
+            #                size=100)
 
-        draw_axis(frame, yaw_predicted.numpy(), pitch_predicted.numpy(), roll_predicted.numpy(), tdx=int(center_x), tdy=int(center_y), size=100)
+            draw_axis(frame, yaw_predicted.numpy(), pitch_predicted.numpy(), roll_predicted.numpy(), tdx=int(center_x), tdy=int(center_y), size=100)
+        
+        except Exception as e:
+            print(e)
+            print("Cannot detect a face!")
 
         cv2.imshow('frame', cv2.cvtColor(frame, cv2.COLOR_RGB2BGR))
         if cv2.waitKey(1) & 0xFF == ord('q'):
