@@ -9,6 +9,8 @@ import torch.nn.functional as F
 import hopenet
 from utils import *
 from scipy.spatial import distance as dist
+from datetime import datetime
+from live_plotter import data_writter_initialze, data_writter_write
 
 p = "../model/shape_predictor_68_face_landmarks.dat"
 detector = dlib.get_frontal_face_detector()
@@ -58,6 +60,10 @@ def main():
     yawning=False
     eyeClosed=False
 
+    # the following line is for us to initalize csv writer for JZ to study
+    # threshold for yawn pitch and row
+    data_writter_initialze(['timestamp', 'yaw', 'pitch', 'roll']) # JZ-comment or remove this during the deployment
+    
     while (True):
         ret, frame = cap.read()
         frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
@@ -107,35 +113,47 @@ def main():
                 # Uncomment if you want to visualize all other landmarks
                 # else:
                 #     cv2.circle(frame, (x, y), 2, (255, 0, 0), -1)
+    
+            roi_box, center_x, center_y = rec_to_roi_box(rect)
+    
+            roi_img = crop_img(frame, roi_box)
+    
+            img = Image.fromarray(roi_img)
 
-        roi_box, center_x, center_y = rec_to_roi_box(rect)
+            # Transform
+            img = transformations(img)
+            img_shape = img.size()
+            img = img.view(1, img_shape[0], img_shape[1], img_shape[2])
 
-        roi_img = crop_img(frame, roi_box)
-
-        img = Image.fromarray(roi_img)
-
-        # Transform
-        img = transformations(img)
-        img_shape = img.size()
-        img = img.view(1, img_shape[0], img_shape[1], img_shape[2])
-
-        with torch.no_grad():
-            yaw, pitch, roll = model(img)
-
-            yaw_predicted = F.softmax(yaw, dim=1)
-            pitch_predicted = F.softmax(pitch, dim=1)
-            roll_predicted = F.softmax(roll, dim=1)
-            # Get continuous predictions in degrees.
-            yaw_predicted = torch.sum(yaw_predicted.data.view(-1) * idx_tensor) * 3 - 99
-            pitch_predicted = torch.sum(pitch_predicted.view(-1) * idx_tensor) * 3 - 99
-            roll_predicted = torch.sum(roll_predicted.view(-1) * idx_tensor) * 3 - 99
-
+            with torch.no_grad():
+                yaw, pitch, roll = model(img)
+                
+                yaw_predicted = F.softmax(yaw, dim=1)
+                pitch_predicted = F.softmax(pitch, dim=1)
+                roll_predicted = F.softmax(roll, dim=1)
+                # Get continuous predictions in degrees.
+                yaw_predicted = torch.sum(yaw_predicted.data.view(-1) * idx_tensor) * 3 - 99
+                pitch_predicted = torch.sum(pitch_predicted.view(-1) * idx_tensor) * 3 - 99
+                roll_predicted = torch.sum(roll_predicted.view(-1) * idx_tensor) * 3 - 99
+                
+                # JZ use start - comment or remove the following during deployment
+                # current date and time
+                now = datetime.now()
+                info = {
+                        'timestamp': datetime.timestamp(now),
+                        'yaw': yaw_predicted.item(),
+                        'pitch': pitch_predicted.item(),
+                        'roll': roll_predicted.item()
+                        }
+                data_writter_write(info, ["timestamp", "yaw", "pitch", "roll"])
+                 # JZ use end - comment or remove the following during deployment
+                
         # plot_pose_cube(frame, yaw_predicted, pitch_predicted, roll_predicted, tdx=int(center_x), tdy=int(center_y),
         #                size=100)
 
-        draw_axis(frame, yaw_predicted.numpy(), pitch_predicted.numpy(), roll_predicted.numpy(), tdx=int(center_x), tdy=int(center_y), size=100)
-
-        cv2.imshow('frame', cv2.cvtColor(frame, cv2.COLOR_RGB2BGR))
+            draw_axis(frame, yaw_predicted.numpy(), pitch_predicted.numpy(), roll_predicted.numpy(), tdx=int(center_x), tdy=int(center_y), size=100)
+    
+            cv2.imshow('frame', cv2.cvtColor(frame, cv2.COLOR_RGB2BGR))
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
 
