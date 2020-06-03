@@ -1,5 +1,6 @@
 import dlib
 import cv2
+import time
 import torchvision
 from imutils import face_utils
 import torch
@@ -10,7 +11,8 @@ import hopenet
 from utils import *
 from scipy.spatial import distance as dist
 from datetime import datetime
-from live_plotter import data_writter_initialze, data_writter_write
+
+# from live_plotter import data_writter_initialze, data_writter_write
 
 p = "../model/shape_predictor_68_face_landmarks.dat"
 detector = dlib.get_frontal_face_detector()
@@ -28,6 +30,7 @@ transformations = transforms.Compose([transforms.Resize(224),
 idx_tensor = [idx for idx in range(66)]
 idx_tensor = torch.FloatTensor(idx_tensor)
 
+
 def eye_aspect_ratio(eye):
     # compute the euclidean distances between the two sets of
     # vertical eye landmarks (x, y)-coordinates
@@ -41,6 +44,7 @@ def eye_aspect_ratio(eye):
     # return the eye aspect ratio
     return ear
 
+
 def mouth_aspect_ratio(mouth):
     # compute the euclidean distances between the two sets of
     # vertical eye landmarks (x, y)-coordinates
@@ -49,31 +53,50 @@ def mouth_aspect_ratio(mouth):
     # eye landmark (x, y)-coordinates
     B = dist.euclidean(mouth[0], mouth[4])
     # compute the eye aspect ratio
-    mar = A  / B
+    mar = A / B
     # return the eye aspect ratio
     return mar
+
 
 def main():
     cap = cv2.VideoCapture(0)
     blinkCount = 0
     yawnCount = 0
-    yawning=False
-    eyeClosed=False
+
+    lostFocusCount = 0
+    lostFocusDuration = 0
+    focusTimer = None
+
+    faceNotPresentDuration = 0
+    faceTimer = None
+
+    yawning = False
+    eyeClosed = False
+    lostFocus = False
 
     # the following line is for us to initalize csv writer for JZ to study
     # threshold for yawn pitch and row
-    data_writter_initialze(['timestamp', 'yaw', 'pitch', 'roll']) # JZ-comment or remove this during the deployment
-    
+    # data_writter_initialze(['timestamp', 'yaw', 'pitch', 'roll']) # JZ-comment or remove this during the deployment
+
     while (True):
         ret, frame = cap.read()
         frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-        frame = cv2.flip(frame,1)
+        frame = cv2.flip(frame, 1)
+        frame_display = frame.copy()
 
         gray = cv2.cvtColor(frame.copy(), cv2.COLOR_BGR2GRAY)
 
         rects = detector(gray, 0)
 
+        if len(rects) == 0:
+            if faceTimer == None:
+                faceTimer = time.time()
+            faceNotPresentDuration += time.time() - faceTimer;
+            faceTimer = time.time();
+
         for (i, rect) in enumerate(rects):
+            faceTimer = None
+
             shape = predictor(gray, rect)
             shape = face_utils.shape_to_np(shape)
 
@@ -90,34 +113,34 @@ def main():
             # print(mar)
 
             if ear < 0.15:
-                eyeClosed=True
+                eyeClosed = True
             if ear > 0.15 and eyeClosed:
-                blinkCount+=1
-                eyeClosed=False
-            cv2.putText(frame,"Blink Count: "+str(blinkCount),(10,30),fontFace=cv2.FONT_HERSHEY_SIMPLEX, fontScale=1.0, color=(255,0,0), thickness=2)
-            
+                blinkCount += 1
+                eyeClosed = False
+
+
             if mar > 0.4:
-                cv2.putText(frame,"Yawning! ",(10,90),fontFace=cv2.FONT_HERSHEY_SIMPLEX, fontScale=1.0, color=(255,0,0), thickness=2)
+                cv2.putText(frame_display, "Yawning! ", (10, 90), fontFace=cv2.FONT_HERSHEY_SIMPLEX, fontScale=1.0,
+                            color=(255, 0, 0), thickness=2)
                 yawning = True
             if mar < 0.2 and yawning:
-                yawnCount+=1
-                yawning=False
-            cv2.putText(frame,"Yawn Count: "+str(yawnCount),(10,60),fontFace=cv2.FONT_HERSHEY_SIMPLEX, fontScale=1.0, color=(255,0,0), thickness=2)
-            
+                yawnCount += 1
+                yawning = False
+
             # Draw circle to show landmarks
-            for idx,(x, y) in enumerate(shape):
-                if idx in range(36,48):
-                    cv2.circle(frame, (x, y), 2, (0, 255, 0), -1)
-                elif idx in range(60,68):
-                    cv2.circle(frame, (x, y), 2, (0, 0, 255), -1)
+            for idx, (x, y) in enumerate(shape):
+                if idx in range(36, 48):
+                    cv2.circle(frame_display, (x, y), 2, (0, 255, 0), -1)
+                elif idx in range(60, 68):
+                    cv2.circle(frame_display, (x, y), 2, (0, 0, 255), -1)
                 # Uncomment if you want to visualize all other landmarks
                 # else:
                 #     cv2.circle(frame, (x, y), 2, (255, 0, 0), -1)
-    
+
             roi_box, center_x, center_y = rec_to_roi_box(rect)
-    
+
             roi_img = crop_img(frame, roi_box)
-    
+
             img = Image.fromarray(roi_img)
 
             # Transform
@@ -127,7 +150,7 @@ def main():
 
             with torch.no_grad():
                 yaw, pitch, roll = model(img)
-                
+
                 yaw_predicted = F.softmax(yaw, dim=1)
                 pitch_predicted = F.softmax(pitch, dim=1)
                 roll_predicted = F.softmax(roll, dim=1)
@@ -135,40 +158,71 @@ def main():
                 yaw_predicted = torch.sum(yaw_predicted.data.view(-1) * idx_tensor) * 3 - 99
                 pitch_predicted = torch.sum(pitch_predicted.view(-1) * idx_tensor) * 3 - 99
                 roll_predicted = torch.sum(roll_predicted.view(-1) * idx_tensor) * 3 - 99
-                
+
+                print(yaw_predicted.item(), pitch_predicted.item(), roll_predicted.item())
+                if yaw_predicted.item() < -30 or yaw_predicted.item() > 30:
+                    lostFocus = True
+                    if focusTimer == None:
+                        focusTimer = time.time()
+
+                    lostFocusDuration += time.time() - focusTimer;
+                    focusTimer = time.time();
+                if (yaw_predicted.item() > -30 and yaw_predicted.item() < 30) and lostFocus:
+                    lostFocusCount += 1
+                    lostFocus = False
+                    focusTimer = None
+
                 # JZ use start - comment or remove the following during deployment
                 # current date and time
-                now = datetime.now()
-                info = {
-                        'timestamp': datetime.timestamp(now),
-                        'yaw': yaw_predicted.item(),
-                        'pitch': pitch_predicted.item(),
-                        'roll': roll_predicted.item()
-                        }
-                data_writter_write(info, ["timestamp", "yaw", "pitch", "roll"])
-                 # JZ use end - comment or remove the following during deployment
-                
-        # plot_pose_cube(frame, yaw_predicted, pitch_predicted, roll_predicted, tdx=int(center_x), tdy=int(center_y),
-        #                size=100)
+                # now = datetime.now()
+                # info = {
+                #         'timestamp': datetime.timestamp(now),
+                #         'yaw': yaw_predicted.item(),
+                #         'pitch': pitch_predicted.item(),
+                #         'roll': roll_predicted.item()
+                #         }
+                # data_writter_write(info, ["timestamp", "yaw", "pitch", "roll"])
+                # JZ use end - comment or remove the following during deployment
 
-                draw_axis(frame, yaw_predicted.numpy(), pitch_predicted.numpy(), roll_predicted.numpy(), tdx=int(center_x), tdy=int(center_y), size=100)
-    
-                cv2.imshow('frame', cv2.cvtColor(frame, cv2.COLOR_RGB2BGR))
+                # plot_pose_cube(frame, yaw_predicted, pitch_predicted, roll_predicted, tdx=int(center_x), tdy=int(center_y),
+                #                size=100)
+
+                draw_axis(frame_display, yaw_predicted.numpy(), pitch_predicted.numpy(), roll_predicted.numpy(),
+                          tdx=int(center_x), tdy=int(center_y), size=100)
+
+        cv2.putText(frame_display, "Blink Count: " + str(blinkCount), (10, 30), fontFace=cv2.FONT_HERSHEY_SIMPLEX,
+                    fontScale=1.0, color=(255, 0, 0), thickness=2)
+        cv2.putText(frame_display, "Yawn Count: " + str(yawnCount), (10, 60), fontFace=cv2.FONT_HERSHEY_SIMPLEX,
+                    fontScale=1.0, color=(255, 0, 0), thickness=2)
+
+        cv2.putText(frame_display, "Lost Focus Count: " + str(lostFocusCount), (10, 90),
+                    fontFace=cv2.FONT_HERSHEY_SIMPLEX,
+                    fontScale=1.0, color=(255, 0, 0), thickness=2)
+        cv2.putText(frame_display, "Lost Focus Duration: " + str(round(lostFocusDuration)), (10, 120),
+                    fontFace=cv2.FONT_HERSHEY_SIMPLEX,
+                    fontScale=1.0, color=(255, 0, 0), thickness=2)
+
+        cv2.putText(frame_display, "Face Not Present Duration: " + str(round(faceNotPresentDuration)), (10, 150),
+                    fontFace=cv2.FONT_HERSHEY_SIMPLEX,
+                    fontScale=1.0, color=(255, 0, 0), thickness=2)
+
+        cv2.imshow('frame', cv2.cvtColor(frame_display, cv2.COLOR_RGB2BGR))
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
 
     cap.release()
     cv2.destroyAllWindows()
 
+
 def single_image_test():
     image = cv2.imread("../image/lena.jpg")
 
     rects = detector(image, 0)
-    rect=rects[0]
+    rect = rects[0]
     roi_box, center_x, center_y = rec_to_roi_box(rect)
 
     cv2.circle(image, (int(center_x), int(center_y)), 2, (0, 255, 0), -1)
-    cv2.rectangle(image, (int(roi_box[0]),int(roi_box[1])), (int(roi_box[2]),int(roi_box[3])),(0, 255, 0))
+    cv2.rectangle(image, (int(roi_box[0]), int(roi_box[1])), (int(roi_box[2]), int(roi_box[3])), (0, 255, 0))
 
     roi_img = crop_img(image, roi_box)
     img = Image.fromarray(roi_img)
@@ -189,20 +243,15 @@ def single_image_test():
     pitch_predicted = torch.sum(pitch_predicted.view(-1) * idx_tensor) * 3 - 99
     roll_predicted = torch.sum(roll_predicted.view(-1) * idx_tensor) * 3 - 99
 
-    plot_pose_cube(image, yaw_predicted, pitch_predicted, roll_predicted, tdx = int(center_x), tdy= int(center_y), size = 100)
+    plot_pose_cube(image, yaw_predicted, pitch_predicted, roll_predicted, tdx=int(center_x), tdy=int(center_y),
+                   size=100)
     # draw_axis(image, yaw_predicted, pitch_predicted, roll_predicted, tdx = int(center_x), tdy= int(center_y), size = 100)
 
     cv2.imshow("OpenCV Image Reading", image)
 
     cv2.waitKey(0)
 
+
 if __name__ == '__main__':
     main()
     # single_image_test()
-
-
-
-
-    
-    
-
