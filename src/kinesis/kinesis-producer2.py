@@ -6,7 +6,7 @@ from random import random
 
 # Modify this section to reflect your AWS configuration.
 awsRegion = "ap-southeast-1"         # The AWS region where your Kinesis Analytics application is configured.
-inputStream = "attention-stream"       # The name of the stream being used as input into the Kinesis Analytics hotspots application
+inputStream = "kinesis-attention-stream"       # The name of the stream being used as input into the Kinesis Analytics hotspots application
 
 # Variables that control properties of the generated data.
 xRange = [0, 10]       # The range of values taken by the x-coordinate
@@ -70,8 +70,9 @@ def main():
     while True:
         records = generator.get_records(batch_size)
         print(records)
-        kinesis.put_records(StreamName=inputStream, Records=records)
+        put_response =  kinesis.put_records(StreamName=inputStream, Records=records)
 
+        print(put_response)
         time.sleep(3)
 
 

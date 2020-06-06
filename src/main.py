@@ -9,10 +9,15 @@ from torchvision import transforms
 import torch.nn.functional as F
 import hopenet
 from utils import *
-from scipy.spatial import distance as dist
+import threading
+import boto3
+import json
+import uuid
+
 from datetime import datetime
 
 # from live_plotter import data_writter_initialze, data_writter_write
+from src.utils import eye_aspect_ratio, rec_to_roi_box
 
 p = "../model/shape_predictor_68_face_landmarks.dat"
 detector = dlib.get_frontal_face_detector()
@@ -30,32 +35,20 @@ transformations = transforms.Compose([transforms.Resize(224),
 idx_tensor = [idx for idx in range(66)]
 idx_tensor = torch.FloatTensor(idx_tensor)
 
+awsRegion = "ap-southeast-1"
+inputStream = "kinesis-attention-stream"
+kinesis = boto3.client('kinesis', region_name=awsRegion)
 
-def eye_aspect_ratio(eye):
-    # compute the euclidean distances between the two sets of
-    # vertical eye landmarks (x, y)-coordinates
-    A = dist.euclidean(eye[1], eye[5])
-    B = dist.euclidean(eye[2], eye[4])
-    # compute the euclidean distance between the horizontal
-    # eye landmark (x, y)-coordinates
-    C = dist.euclidean(eye[0], eye[3])
-    # compute the eye aspect ratio
-    ear = (A + B) / (2.0 * C)
-    # return the eye aspect ratio
-    return ear
+id=1
 
+# def send_record():
+#     # threading.Timer(5.0, send_record).start()
+#     # if len(records) != 0:
+#     put_response = kinesis.put_records(StreamName=inputStream, Records=records)
+#
+#     print("sending record...")
+#     print(put_response)
 
-def mouth_aspect_ratio(mouth):
-    # compute the euclidean distances between the two sets of
-    # vertical eye landmarks (x, y)-coordinates
-    A = dist.euclidean(mouth[2], mouth[6])
-    # compute the euclidean distance between the horizontal
-    # eye landmark (x, y)-coordinates
-    B = dist.euclidean(mouth[0], mouth[4])
-    # compute the eye aspect ratio
-    mar = A / B
-    # return the eye aspect ratio
-    return mar
 
 
 def main():
@@ -74,11 +67,16 @@ def main():
     eyeClosed = False
     lostFocus = False
 
+    records = []
+
     # the following line is for us to initalize csv writer for JZ to study
     # threshold for yawn pitch and row
     # data_writter_initialze(['timestamp', 'yaw', 'pitch', 'roll']) # JZ-comment or remove this during the deployment
+    # send_record()
 
     while (True):
+        fps_count_start_time = time.time()
+
         ret, frame = cap.read()
         frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         frame = cv2.flip(frame, 1)
@@ -117,7 +115,6 @@ def main():
             if ear > 0.15 and eyeClosed:
                 blinkCount += 1
                 eyeClosed = False
-
 
             if mar > 0.4:
                 cv2.putText(frame_display, "Yawning! ", (10, 90), fontFace=cv2.FONT_HERSHEY_SIMPLEX, fontScale=1.0,
@@ -159,7 +156,7 @@ def main():
                 pitch_predicted = torch.sum(pitch_predicted.view(-1) * idx_tensor) * 3 - 99
                 roll_predicted = torch.sum(roll_predicted.view(-1) * idx_tensor) * 3 - 99
 
-                print(yaw_predicted.item(), pitch_predicted.item(), roll_predicted.item())
+                # print(yaw_predicted.item(), pitch_predicted.item(), roll_predicted.item())
                 if yaw_predicted.item() < -30 or yaw_predicted.item() > 30:
                     lostFocus = True
                     if focusTimer == None:
@@ -190,6 +187,32 @@ def main():
                 draw_axis(frame_display, yaw_predicted.numpy(), pitch_predicted.numpy(), roll_predicted.numpy(),
                           tdx=int(center_x), tdy=int(center_y), size=100)
 
+                record = {
+                    'id': str(id),
+                    'sortKey': str(uuid.uuid1()),
+                    'timestamp': datetime.now().timestamp(),
+                    'yaw': yaw_predicted.item(),
+                    'pitch': pitch_predicted.item(),
+                    'roll': roll_predicted.item(),
+                    'ear': ear,
+                    'blink_count': blinkCount,
+                    'mar': mar,
+                    'yawn_count': yawnCount,
+                    'lost_focus_count': lostFocusCount,
+                    'lost_focus_duration': lostFocusDuration,
+                    'face_not_present_duration': faceNotPresentDuration
+                }
+                print(record)
+                data = json.dumps(record)
+                records.append({'Data': bytes(data, 'utf-8'), 'PartitionKey': str(id)})
+
+                if len(records) >= 10:
+                    put_response = kinesis.put_records(StreamName=inputStream, Records=records)
+                    time.sleep(1)
+                    print("sending record...")
+                    print(put_response)
+                    records = []
+
         cv2.putText(frame_display, "Blink Count: " + str(blinkCount), (10, 30), fontFace=cv2.FONT_HERSHEY_SIMPLEX,
                     fontScale=1.0, color=(255, 0, 0), thickness=2)
         cv2.putText(frame_display, "Yawn Count: " + str(yawnCount), (10, 60), fontFace=cv2.FONT_HERSHEY_SIMPLEX,
@@ -207,6 +230,8 @@ def main():
                     fontScale=1.0, color=(255, 0, 0), thickness=2)
 
         cv2.imshow('frame', cv2.cvtColor(frame_display, cv2.COLOR_RGB2BGR))
+
+        print("FPS: ", 1.0 / (time.time() - fps_count_start_time))
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
 

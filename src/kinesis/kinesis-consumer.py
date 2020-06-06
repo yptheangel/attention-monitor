@@ -4,7 +4,7 @@ from datetime import datetime
 import time
 
 client = boto3.client('kinesis', region_name='ap-southeast-1')
-stream_name = "attention-stream"
+stream_name = "kinesis-attention-stream"
 
 
 
