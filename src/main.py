@@ -39,7 +39,7 @@ awsRegion = "ap-southeast-1"
 inputStream = "kinesis-attention-stream"
 kinesis = boto3.client('kinesis', region_name=awsRegion)
 
-id=1
+id=2
 
 # def send_record():
 #     # threading.Timer(5.0, send_record).start()
@@ -69,149 +69,143 @@ def main():
 
     records = []
 
-    # the following line is for us to initalize csv writer for JZ to study
-    # threshold for yawn pitch and row
-    # data_writter_initialze(['timestamp', 'yaw', 'pitch', 'roll']) # JZ-comment or remove this during the deployment
-    # send_record()
+    # control FPS
+    frame_rate = 3
+    prev = 0
 
-    while (True):
+    while True:
         fps_count_start_time = time.time()
 
         ret, frame = cap.read()
         frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         frame = cv2.flip(frame, 1)
         frame_display = frame.copy()
-
         gray = cv2.cvtColor(frame.copy(), cv2.COLOR_BGR2GRAY)
 
-        rects = detector(gray, 0)
+        # control FPS
+        time_elapsed = time.time() - prev
+        if time_elapsed > 1. / frame_rate:
+            prev = time.time()
 
-        if len(rects) == 0:
-            if faceTimer == None:
-                faceTimer = time.time()
-            faceNotPresentDuration += time.time() - faceTimer;
-            faceTimer = time.time();
+            rects = detector(gray, 0)
 
-        for (i, rect) in enumerate(rects):
-            faceTimer = None
+            if len(rects) == 0:
+                if faceTimer == None:
+                    faceTimer = time.time()
+                faceNotPresentDuration += time.time() - faceTimer;
+                faceTimer = time.time();
 
-            shape = predictor(gray, rect)
-            shape = face_utils.shape_to_np(shape)
+            for (i, rect) in enumerate(rects):
+                faceTimer = None
 
-            leftEye = shape[36:42]
-            # print(f"leftEye{leftEye}")
-            rightEye = shape[42:48]
-            # print(f"righti{rightEye}")
-            leftEAR = eye_aspect_ratio(leftEye)
-            rightEAR = eye_aspect_ratio(rightEye)
-            # average the eye aspect ratio together for both eyes
-            ear = (leftEAR + rightEAR) / 2.0
-            # print(ear)
-            mar = mouth_aspect_ratio(shape[60:69])
-            # print(mar)
+                shape = predictor(gray, rect)
+                shape = face_utils.shape_to_np(shape)
 
-            if ear < 0.15:
-                eyeClosed = True
-            if ear > 0.15 and eyeClosed:
-                blinkCount += 1
-                eyeClosed = False
+                leftEye = shape[36:42]
+                # print(f"leftEye{leftEye}")
+                rightEye = shape[42:48]
+                # print(f"righti{rightEye}")
+                leftEAR = eye_aspect_ratio(leftEye)
+                rightEAR = eye_aspect_ratio(rightEye)
+                # average the eye aspect ratio together for both eyes
+                ear = (leftEAR + rightEAR) / 2.0
+                # print(ear)
+                mar = mouth_aspect_ratio(shape[60:69])
+                # print(mar)
 
-            if mar > 0.4:
-                cv2.putText(frame_display, "Yawning! ", (10, 90), fontFace=cv2.FONT_HERSHEY_SIMPLEX, fontScale=1.0,
-                            color=(255, 0, 0), thickness=2)
-                yawning = True
-            if mar < 0.2 and yawning:
-                yawnCount += 1
-                yawning = False
+                if ear < 0.15:
+                    eyeClosed = True
+                if ear > 0.15 and eyeClosed:
+                    blinkCount += 1
+                    eyeClosed = False
 
-            # Draw circle to show landmarks
-            for idx, (x, y) in enumerate(shape):
-                if idx in range(36, 48):
-                    cv2.circle(frame_display, (x, y), 2, (0, 255, 0), -1)
-                elif idx in range(60, 68):
-                    cv2.circle(frame_display, (x, y), 2, (0, 0, 255), -1)
-                # Uncomment if you want to visualize all other landmarks
-                # else:
-                #     cv2.circle(frame, (x, y), 2, (255, 0, 0), -1)
+                if mar > 0.4:
+                    # cv2.putText(frame_display, "Yawning! ", (10, 90), fontFace=cv2.FONT_HERSHEY_SIMPLEX, fontScale=1.0,
+                    #             color=(255, 0, 0), thickness=2)
+                    yawning = True
+                if mar < 0.2 and yawning:
+                    yawnCount += 1
+                    yawning = False
 
-            roi_box, center_x, center_y = rec_to_roi_box(rect)
+                # Draw circle to show landmarks
+                # for idx, (x, y) in enumerate(shape):
+                #     if idx in range(36, 48):
+                #         cv2.circle(frame_display, (x, y), 2, (0, 255, 0), -1)
+                #     elif idx in range(60, 68):
+                #         cv2.circle(frame_display, (x, y), 2, (0, 0, 255), -1)
+                    # Uncomment if you want to visualize all other landmarks
+                    # else:
+                    #     cv2.circle(frame, (x, y), 2, (255, 0, 0), -1)
 
-            roi_img = crop_img(frame, roi_box)
+                roi_box, center_x, center_y = rec_to_roi_box(rect)
 
-            img = Image.fromarray(roi_img)
+                roi_img = crop_img(frame, roi_box)
 
-            # Transform
-            img = transformations(img)
-            img_shape = img.size()
-            img = img.view(1, img_shape[0], img_shape[1], img_shape[2])
+                img = Image.fromarray(roi_img)
 
-            with torch.no_grad():
-                yaw, pitch, roll = model(img)
+                # Transform
+                img = transformations(img)
+                img_shape = img.size()
+                img = img.view(1, img_shape[0], img_shape[1], img_shape[2])
 
-                yaw_predicted = F.softmax(yaw, dim=1)
-                pitch_predicted = F.softmax(pitch, dim=1)
-                roll_predicted = F.softmax(roll, dim=1)
-                # Get continuous predictions in degrees.
-                yaw_predicted = torch.sum(yaw_predicted.data.view(-1) * idx_tensor) * 3 - 99
-                pitch_predicted = torch.sum(pitch_predicted.view(-1) * idx_tensor) * 3 - 99
-                roll_predicted = torch.sum(roll_predicted.view(-1) * idx_tensor) * 3 - 99
+                with torch.no_grad():
+                    yaw, pitch, roll = model(img)
 
-                # print(yaw_predicted.item(), pitch_predicted.item(), roll_predicted.item())
-                if yaw_predicted.item() < -30 or yaw_predicted.item() > 30:
-                    lostFocus = True
-                    if focusTimer == None:
-                        focusTimer = time.time()
+                    yaw_predicted = F.softmax(yaw, dim=1)
+                    pitch_predicted = F.softmax(pitch, dim=1)
+                    roll_predicted = F.softmax(roll, dim=1)
+                    # Get continuous predictions in degrees.
+                    yaw_predicted = torch.sum(yaw_predicted.data.view(-1) * idx_tensor) * 3 - 99
+                    pitch_predicted = torch.sum(pitch_predicted.view(-1) * idx_tensor) * 3 - 99
+                    roll_predicted = torch.sum(roll_predicted.view(-1) * idx_tensor) * 3 - 99
 
-                    lostFocusDuration += time.time() - focusTimer;
-                    focusTimer = time.time();
-                if (yaw_predicted.item() > -30 and yaw_predicted.item() < 30) and lostFocus:
-                    lostFocusCount += 1
-                    lostFocus = False
-                    focusTimer = None
+                    # print(yaw_predicted.item(), pitch_predicted.item(), roll_predicted.item())
+                    if yaw_predicted.item() < -30 or yaw_predicted.item() > 30:
+                        lostFocus = True
+                        if focusTimer == None:
+                            focusTimer = time.time()
 
-                # JZ use start - comment or remove the following during deployment
-                # current date and time
-                # now = datetime.now()
-                # info = {
-                #         'timestamp': datetime.timestamp(now),
-                #         'yaw': yaw_predicted.item(),
-                #         'pitch': pitch_predicted.item(),
-                #         'roll': roll_predicted.item()
-                #         }
-                # data_writter_write(info, ["timestamp", "yaw", "pitch", "roll"])
-                # JZ use end - comment or remove the following during deployment
+                        lostFocusDuration += time.time() - focusTimer;
+                        focusTimer = time.time();
+                    if (yaw_predicted.item() > -30 and yaw_predicted.item() < 30) and lostFocus:
+                        lostFocusCount += 1
+                        lostFocus = False
+                        focusTimer = None
 
-                # plot_pose_cube(frame, yaw_predicted, pitch_predicted, roll_predicted, tdx=int(center_x), tdy=int(center_y),
-                #                size=100)
+                    # plot_pose_cube(frame, yaw_predicted, pitch_predicted, roll_predicted, tdx=int(center_x), tdy=int(center_y),
+                    #                size=100)
 
-                draw_axis(frame_display, yaw_predicted.numpy(), pitch_predicted.numpy(), roll_predicted.numpy(),
-                          tdx=int(center_x), tdy=int(center_y), size=100)
+                    # draw_axis(frame_display, yaw_predicted.numpy(), pitch_predicted.numpy(), roll_predicted.numpy(),
+                    #           tdx=int(center_x), tdy=int(center_y), size=100)
 
-                record = {
-                    'id': str(id),
-                    'sortKey': str(uuid.uuid1()),
-                    'timestamp': datetime.now().timestamp(),
-                    'yaw': yaw_predicted.item(),
-                    'pitch': pitch_predicted.item(),
-                    'roll': roll_predicted.item(),
-                    'ear': ear,
-                    'blink_count': blinkCount,
-                    'mar': mar,
-                    'yawn_count': yawnCount,
-                    'lost_focus_count': lostFocusCount,
-                    'lost_focus_duration': lostFocusDuration,
-                    'face_not_present_duration': faceNotPresentDuration
-                }
-                print(record)
-                data = json.dumps(record)
-                records.append({'Data': bytes(data, 'utf-8'), 'PartitionKey': str(id)})
+                    # prepare to put records in kinesis
+                    ###################################################################################################
+                    record = {
+                        'id': str(id),
+                        'sortKey': str(uuid.uuid1()),
+                        'timestamp': datetime.now().timestamp(),
+                        'yaw': yaw_predicted.item(),
+                        'pitch': pitch_predicted.item(),
+                        'roll': roll_predicted.item(),
+                        'ear': ear,
+                        'blink_count': blinkCount,
+                        'mar': mar,
+                        'yawn_count': yawnCount,
+                        'lost_focus_count': lostFocusCount,
+                        'lost_focus_duration': lostFocusDuration,
+                        'face_not_present_duration': faceNotPresentDuration
+                    }
+                    print(record)
+                    data = json.dumps(record)
+                    records.append({'Data': bytes(data, 'utf-8'), 'PartitionKey': str(id)})
 
-                if len(records) >= 10:
-                    put_response = kinesis.put_records(StreamName=inputStream, Records=records)
-                    time.sleep(1)
-                    print("sending record...")
-                    print(put_response)
-                    records = []
+                    if len(records) >= 10:
+                        put_response = kinesis.put_records(StreamName=inputStream, Records=records)
+                        time.sleep(0.5)
+                        print("sending record...")
+                        print(put_response)
+                        records = []
+                    ###################################################################################################
 
         cv2.putText(frame_display, "Blink Count: " + str(blinkCount), (10, 30), fontFace=cv2.FONT_HERSHEY_SIMPLEX,
                     fontScale=1.0, color=(255, 0, 0), thickness=2)
