@@ -180,35 +180,36 @@ def main():
 
                     # prepare to put records in kinesis
                     ###################################################################################################
-                    record = {
-                        'id': str(id),
-                        'sortKey': str(uuid.uuid1()),
-                        'timestamp': datetime.now().timestamp(),
-                        'yaw': yaw_predicted.item(),
-                        'pitch': pitch_predicted.item(),
-                        'roll': roll_predicted.item(),
-                        'ear': ear,
-                        'blink_count': blinkCount,
-                        'mar': mar,
-                        'yawn_count': yawnCount,
-                        'lost_focus_count': lostFocusCount,
-                        'lost_focus_duration': lostFocusDuration,
-                        'face_not_present_duration': faceNotPresentDuration
-                    }
-                    print(record)
-                    data = json.dumps(record)
-                    records.append({'Data': bytes(data, 'utf-8'), 'PartitionKey': str(id)})
-
-                    if len(records) >= 10:
-                        put_response = kinesis.put_records(StreamName=inputStream, Records=records)
-                        time.sleep(0.5)
-                        print("sending record...")
-                        print(put_response)
-                        records = []
+                    # record = {
+                    #     'id': str(id),
+                    #     'sortKey': str(uuid.uuid1()),
+                    #     'timestamp': datetime.now().timestamp(),
+                    #     'yaw': yaw_predicted.item(),
+                    #     'pitch': pitch_predicted.item(),
+                    #     'roll': roll_predicted.item(),
+                    #     'ear': ear,
+                    #     'blink_count': blinkCount,
+                    #     'mar': mar,
+                    #     'yawn_count': yawnCount,
+                    #     'lost_focus_count': lostFocusCount,
+                    #     'lost_focus_duration': lostFocusDuration,
+                    #     'face_not_present_duration': faceNotPresentDuration
+                    # }
+                    # print(record)
+                    # data = json.dumps(record)
+                    # records.append({'Data': bytes(data, 'utf-8'), 'PartitionKey': str(id)})
+                    #
+                    # if len(records) >= 10:
+                    #     put_response = kinesis.put_records(StreamName=inputStream, Records=records)
+                    #     time.sleep(0.5)
+                    #     print("sending record...")
+                    #     print(put_response)
+                    #     records = []
                     ###################################################################################################
 
         cv2.putText(frame_display, "Blink Count: " + str(blinkCount), (10, 30), fontFace=cv2.FONT_HERSHEY_SIMPLEX,
                     fontScale=1.0, color=(255, 0, 0), thickness=2)
+        cv2.putText(frame_display, "Yawn Count: " + str(yawnCount), (10, 60), fontFace=cv2.FONT_HERSHEY_SIMPLEX,
         cv2.putText(frame_display, "Yawn Count: " + str(yawnCount), (10, 60), fontFace=cv2.FONT_HERSHEY_SIMPLEX,
                     fontScale=1.0, color=(255, 0, 0), thickness=2)
 
