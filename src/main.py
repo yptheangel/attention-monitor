@@ -10,7 +10,10 @@ import hopenet
 from utils import *
 from scipy.spatial import distance as dist
 
-import vispy_realtime_test
+from timeit import default_timer as timer
+from threading import Thread
+from queue import Queue
+from plotter import MetricsMonitor
 
 p = "../model/shape_predictor_68_face_landmarks.dat"
 detector = dlib.get_frontal_face_detector()
@@ -42,27 +45,29 @@ def eye_aspect_ratio(eye):
     return ear
 
 def mouth_aspect_ratio(mouth):
-    # compute the euclidean distances between the two sets of
-    # vertical eye landmarks (x, y)-coordinates
     A = dist.euclidean(mouth[2], mouth[6])
-    # compute the euclidean distance between the horizontal
-    # eye landmark (x, y)-coordinates
     B = dist.euclidean(mouth[0], mouth[4])
-    # compute the eye aspect ratio
     mar = A  / B
-    # return the eye aspect ratio
     return mar
 
-def main():
+def comp_vision(q1,q2,q3,q4,q5):
+    mar_stream = q1.get()
+    ear_stream = q2.get()
+    yaw_stream = q3.get()
+    pitch_stream = q4.get()
+    roll_stream = q5.get()
+
     cap = cv2.VideoCapture(0)
+    cap.set(3, 720)
+    cap.set(4, 1280)
+
     blinkCount = 0
     yawnCount = 0
     yawning=False
     eyeClosed=False
-    # canvas = vispy_realtime_test.Canvas(1, 1, 1000, 0)
 
     while True:
-
+        start = timer()
         ret, frame = cap.read()
         frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         frame = cv2.flip(frame,1)
@@ -74,6 +79,8 @@ def main():
         for (i, rect) in enumerate(rects):
             shape = predictor(gray, rect)
             shape = face_utils.shape_to_np(shape)
+            inter1 = timer()
+            # print(f"dlib face landmark: {(inter1-start):.2f}")
 
             leftEye = shape[36:42]
             # print(f"leftEye{leftEye}")
@@ -87,6 +94,11 @@ def main():
             mar = mouth_aspect_ratio(shape[60:69])
             # print(mar)
 
+            ear_stream=np.append(ear_stream[1:],ear)
+            q2.put(ear_stream)
+            mar_stream=np.append(mar_stream[1:],mar)
+            q1.put(mar_stream)
+
             if ear < 0.15:
                 eyeClosed=True
             if ear > 0.15 and eyeClosed:
@@ -97,7 +109,6 @@ def main():
             if mar > 0.4:
                 cv2.putText(frame,"Yawning! ",(10,90),fontFace=cv2.FONT_HERSHEY_SIMPLEX, fontScale=1.0, color=(255,0,0), thickness=2)
                 yawning = True
-                # canvas.set_data(1)
 
             if mar < 0.2 and yawning:
                 yawnCount+=1
@@ -141,12 +152,21 @@ def main():
             #                size=100)
 
             draw_axis(frame, yaw_predicted.numpy(), pitch_predicted.numpy(), roll_predicted.numpy(), tdx=int(center_x), tdy=int(center_y), size=100)
-        
+            yaw_stream=np.append(yaw_stream[1:],float(yaw_predicted))
+            q3.put(yaw_stream)
+            pitch_stream=np.append(pitch_stream[1:],float(pitch_predicted))
+            q4.put(pitch_stream)
+            roll_stream=np.append(roll_stream[1:],float(roll_predicted))
+            q5.put(roll_stream)
+
         except Exception as e:
             print(e)
             print("Cannot detect a face!")
 
         cv2.imshow('frame', cv2.cvtColor(frame, cv2.COLOR_RGB2BGR))
+        end = timer()
+        # print(f"FPS: {1/(end-start):.2f}")
+
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
 
@@ -189,8 +209,29 @@ def single_image_test():
 
     cv2.waitKey(0)
 
+def monitor(q1,q2,q3,q4,q5):
+    monitor_app = MetricsMonitor()
+    monitor_app.stream(q1,q2,q3,q4,q5)
+    monitor_app.animation()
+
 if __name__ == '__main__':
-    main()
+    # event = Event()
+    q1 = Queue()
+    q2 = Queue()
+    q3 = Queue()
+    q4 = Queue()
+    q5 = Queue()
+    q1.put(np.ones(60))
+    q2.put(np.ones(60))
+    q3.put(np.zeros(60))
+    q4.put(np.zeros(60))
+    q5.put(np.zeros(60))
+
+    t1 = Thread(name='Computer Vision Thread', target=comp_vision, args=(q1,q2,q3,q4,q5))
+    t1.start()
+    monitor(q1,q2,q3,q4,q5)
+    t1.join()
+
     # single_image_test()
 
 
