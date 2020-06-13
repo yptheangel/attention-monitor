@@ -17,7 +17,7 @@ import uuid
 from datetime import datetime
 
 # from live_plotter import data_writter_initialze, data_writter_write
-from src.utils import eye_aspect_ratio, rec_to_roi_box
+from utils import eye_aspect_ratio, rec_to_roi_box
 
 p = "../model/shape_predictor_68_face_landmarks.dat"
 detector = dlib.get_frontal_face_detector()
@@ -39,7 +39,7 @@ awsRegion = "ap-southeast-1"
 inputStream = "kinesis-attention-stream"
 kinesis = boto3.client('kinesis', region_name=awsRegion)
 
-id=2
+id=100
 
 # def send_record():
 #     # threading.Timer(5.0, send_record).start()
@@ -70,11 +70,11 @@ def main():
     records = []
 
     # control FPS
-    frame_rate = 3
+    frame_rate_use = 3
     prev = 0
 
     while True:
-        fps_count_start_time = time.time()
+        # fps_count_start_time = time.time()
 
         ret, frame = cap.read()
         frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
@@ -84,7 +84,7 @@ def main():
 
         # control FPS
         time_elapsed = time.time() - prev
-        if time_elapsed > 1. / frame_rate:
+        if time_elapsed > 1. / frame_rate_use:
             prev = time.time()
 
             rects = detector(gray, 0)
@@ -210,7 +210,6 @@ def main():
         cv2.putText(frame_display, "Blink Count: " + str(blinkCount), (10, 30), fontFace=cv2.FONT_HERSHEY_SIMPLEX,
                     fontScale=1.0, color=(255, 0, 0), thickness=2)
         cv2.putText(frame_display, "Yawn Count: " + str(yawnCount), (10, 60), fontFace=cv2.FONT_HERSHEY_SIMPLEX,
-        cv2.putText(frame_display, "Yawn Count: " + str(yawnCount), (10, 60), fontFace=cv2.FONT_HERSHEY_SIMPLEX,
                     fontScale=1.0, color=(255, 0, 0), thickness=2)
 
         cv2.putText(frame_display, "Lost Focus Count: " + str(lostFocusCount), (10, 90),
@@ -226,7 +225,7 @@ def main():
 
         cv2.imshow('frame', cv2.cvtColor(frame_display, cv2.COLOR_RGB2BGR))
 
-        print("FPS: ", 1.0 / (time.time() - fps_count_start_time))
+        # print("FPS: ", 1.0 / (time.time() - fps_count_start_time))
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
 
