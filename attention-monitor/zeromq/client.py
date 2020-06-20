@@ -48,7 +48,7 @@ def main():
         # }
         # socket.send(json.dumps(data))
 
-        cv2.imshow('clien1', cv2.cvtColor(frame, cv2.COLOR_RGB2BGR))
+        cv2.imshow('client1', cv2.cvtColor(frame, cv2.COLOR_RGB2BGR))
 
 
         # message = socket.recv()

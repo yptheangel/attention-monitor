@@ -14,15 +14,20 @@ import boto3
 import json
 import uuid
 
+import zmq
+from zeromq.SerializingContext import SerializingContext
+
 from datetime import datetime
 
 # from live_plotter import data_writter_initialze, data_writter_write
 from utils import eye_aspect_ratio, rec_to_roi_box
 
+# face detection and landmark
 p = "../model/shape_predictor_68_face_landmarks.dat"
 detector = dlib.get_frontal_face_detector()
 predictor = dlib.shape_predictor(p)
 
+# face pose detection
 model = hopenet.Hopenet(torchvision.models.resnet.Bottleneck, [3, 4, 6, 3], 66)
 saved_state_dict = torch.load('../model/hopenet_robust_alpha1.pkl', map_location="cpu")
 model.load_state_dict(saved_state_dict)
@@ -35,9 +40,15 @@ transformations = transforms.Compose([transforms.Resize(224),
 idx_tensor = [idx for idx in range(66)]
 idx_tensor = torch.FloatTensor(idx_tensor)
 
+# aws
 awsRegion = "ap-southeast-1"
 inputStream = "kinesis-attention-stream"
 kinesis = boto3.client('kinesis', region_name=awsRegion)
+
+#zmq
+context = SerializingContext()
+socket = context.socket(zmq.PUB)
+socket.connect("tcp://localhost:5555")
 
 id=100
 
@@ -48,8 +59,6 @@ id=100
 #
 #     print("sending record...")
 #     print(put_response)
-
-
 
 def main():
     cap = cv2.VideoCapture(0)
@@ -67,7 +76,7 @@ def main():
     eyeClosed = False
     lostFocus = False
 
-    records = []
+    record = None
 
     # control FPS
     frame_rate_use = 3
@@ -159,53 +168,57 @@ def main():
                     pitch_predicted = torch.sum(pitch_predicted.view(-1) * idx_tensor) * 3 - 99
                     roll_predicted = torch.sum(roll_predicted.view(-1) * idx_tensor) * 3 - 99
 
-                    # print(yaw_predicted.item(), pitch_predicted.item(), roll_predicted.item())
-                    if yaw_predicted.item() < -30 or yaw_predicted.item() > 30:
-                        lostFocus = True
-                        if focusTimer == None:
-                            focusTimer = time.time()
+                # print(yaw_predicted.item(), pitch_predicted.item(), roll_predicted.item())
+                if yaw_predicted.item() < -30 or yaw_predicted.item() > 30:
+                    lostFocus = True
+                    if focusTimer == None:
+                        focusTimer = time.time()
 
-                        lostFocusDuration += time.time() - focusTimer;
-                        focusTimer = time.time();
-                    if (yaw_predicted.item() > -30 and yaw_predicted.item() < 30) and lostFocus:
-                        lostFocusCount += 1
-                        lostFocus = False
-                        focusTimer = None
+                    lostFocusDuration += time.time() - focusTimer;
+                    focusTimer = time.time();
+                if (yaw_predicted.item() > -30 and yaw_predicted.item() < 30) and lostFocus:
+                    lostFocusCount += 1
+                    lostFocus = False
+                    focusTimer = None
 
-                    # plot_pose_cube(frame, yaw_predicted, pitch_predicted, roll_predicted, tdx=int(center_x), tdy=int(center_y),
-                    #                size=100)
+                # plot_pose_cube(frame, yaw_predicted, pitch_predicted, roll_predicted, tdx=int(center_x), tdy=int(center_y),
+                #                size=100)
 
-                    # draw_axis(frame_display, yaw_predicted.numpy(), pitch_predicted.numpy(), roll_predicted.numpy(),
-                    #           tdx=int(center_x), tdy=int(center_y), size=100)
+                # draw_axis(frame_display, yaw_predicted.numpy(), pitch_predicted.numpy(), roll_predicted.numpy(),
+                #           tdx=int(center_x), tdy=int(center_y), size=100)
 
-                    # prepare to put records in kinesis
-                    ###################################################################################################
-                    # record = {
-                    #     'id': str(id),
-                    #     'sortKey': str(uuid.uuid1()),
-                    #     'timestamp': datetime.now().timestamp(),
-                    #     'yaw': yaw_predicted.item(),
-                    #     'pitch': pitch_predicted.item(),
-                    #     'roll': roll_predicted.item(),
-                    #     'ear': ear,
-                    #     'blink_count': blinkCount,
-                    #     'mar': mar,
-                    #     'yawn_count': yawnCount,
-                    #     'lost_focus_count': lostFocusCount,
-                    #     'lost_focus_duration': lostFocusDuration,
-                    #     'face_not_present_duration': faceNotPresentDuration
-                    # }
-                    # print(record)
-                    # data = json.dumps(record)
-                    # records.append({'Data': bytes(data, 'utf-8'), 'PartitionKey': str(id)})
-                    #
-                    # if len(records) >= 10:
-                    #     put_response = kinesis.put_records(StreamName=inputStream, Records=records)
-                    #     time.sleep(0.5)
-                    #     print("sending record...")
-                    #     print(put_response)
-                    #     records = []
-                    ###################################################################################################
+                # prepare to put records in kinesis
+                ###################################################################################################
+                record = {
+                    'id': str(id),
+                    'sortKey': str(uuid.uuid1()),
+                    'timestamp': datetime.now().timestamp(),
+                    'yaw': yaw_predicted.item(),
+                    'pitch': pitch_predicted.item(),
+                    'roll': roll_predicted.item(),
+                    'ear': ear,
+                    'blink_count': blinkCount,
+                    'mar': mar,
+                    'yawn_count': yawnCount,
+                    'lost_focus_count': lostFocusCount,
+                    'lost_focus_duration': lostFocusDuration,
+                    'face_not_present_duration': faceNotPresentDuration
+                }
+                # print(record)
+                # data = json.dumps(record)
+                # records.append({'Data': bytes(data, 'utf-8'), 'PartitionKey': str(id)})
+                #
+                # if len(records) >= 10:
+                #     put_response = kinesis.put_records(StreamName=inputStream, Records=records)
+                #     time.sleep(0.5)
+                #     print("sending record...")
+                #     print(put_response)
+                #     records = []
+                ###################################################################################################
+
+        frame_stream = cv2.resize(frame.copy(), (0,0), fx=0.5, fy=0.5)
+        publish(frame_stream, record)
+        record = None
 
         cv2.putText(frame_display, "Blink Count: " + str(blinkCount), (10, 30), fontFace=cv2.FONT_HERSHEY_SIMPLEX,
                     fontScale=1.0, color=(255, 0, 0), thickness=2)
@@ -232,6 +245,14 @@ def main():
     cap.release()
     cv2.destroyAllWindows()
 
+def publish(image, data):
+    if image.flags['C_CONTIGUOUS']:
+        # if image is already contiguous in memory just send it
+        socket.send_array(image, data, copy=False)
+    else:
+        # else make it contiguous before sending
+        image = np.ascontiguousarray(image)
+        socket.send_array(image, data, copy=False)
 
 def single_image_test():
     image = cv2.imread("../image/lena.jpg")
