@@ -34,9 +34,10 @@ def main():
         ret, frame = cap.read()
         frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         frame = cv2.flip(frame, 1)
+        frame = cv2.resize(frame, (0,0), fx=0.5, fy=0.5)
 
         data={
-            'id': 1,
+            'id': 2,
             'data1': 1.2,
             'data2': 1.4
         }
