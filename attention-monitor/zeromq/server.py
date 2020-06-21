@@ -21,12 +21,12 @@ def main():
         # print(data)
         # print(client_id)
         # print(client_id.dtype)
-        if data != None:
+        if data['record'] != None:
             print(data)
             # sample data {'id': '100', 'sortKey': '3cd72332-b2d9-11ea-b115-0d30b3991a0b', 'timestamp': 1592645668.660121, 'yaw': -7.538459777832031, 'pitch': -4.917228698730469, 'roll': 1.390106201171875, 'ear': 0.33526643780010046, 'blink_count': 6, 'mar': 0.02564102564102564, 'yawn_count': 0, 'lost_focus_count': 1, 'lost_focus_duration': 1.3774120807647705, 'face_not_present_duration': 0.34656667709350586}
             # put your pyqtchart here (wilson choo)
 
-        cv2.imshow("fdfd",  cv2.cvtColor(image, cv2.COLOR_RGB2BGR)) # 1 window for each RPi
+        cv2.imshow(data['id'],  cv2.cvtColor(image, cv2.COLOR_RGB2BGR)) # 1 window for each RPi
         cv2.waitKey(1)
         # image_hub.send_reply(b'OK')
 

@@ -50,7 +50,7 @@ context = SerializingContext()
 socket = context.socket(zmq.PUB)
 socket.connect("tcp://localhost:5555")
 
-id=100
+id=101
 
 # def send_record():
 #     # threading.Timer(5.0, send_record).start()
@@ -216,8 +216,12 @@ def main():
                 #     records = []
                 ###################################################################################################
 
+        data = {
+            'id': str(id),
+            'record': record
+        }
         frame_stream = cv2.resize(frame.copy(), (0,0), fx=0.5, fy=0.5)
-        publish(frame_stream, record)
+        publish(frame_stream, data)
         record = None
 
         cv2.putText(frame_display, "Blink Count: " + str(blinkCount), (10, 30), fontFace=cv2.FONT_HERSHEY_SIMPLEX,
