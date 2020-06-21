@@ -14,6 +14,8 @@ import boto3
 import json
 import uuid
 
+import argparse
+
 import zmq
 from zeromq.SerializingContext import SerializingContext
 
@@ -48,9 +50,7 @@ kinesis = boto3.client('kinesis', region_name=awsRegion)
 #zmq
 context = SerializingContext()
 socket = context.socket(zmq.PUB)
-socket.connect("tcp://localhost:5555")
 
-id=101
 
 # def send_record():
 #     # threading.Timer(5.0, send_record).start()
@@ -60,7 +60,9 @@ id=101
 #     print("sending record...")
 #     print(put_response)
 
-def main():
+def main(userid, host):
+    socket.connect("tcp://"+host+":5555")
+
     cap = cv2.VideoCapture(0)
     blinkCount = 0
     yawnCount = 0
@@ -190,7 +192,7 @@ def main():
                 # prepare to put records in kinesis
                 ###################################################################################################
                 record = {
-                    'id': str(id),
+                    'id': str(userid),
                     'sortKey': str(uuid.uuid1()),
                     'timestamp': datetime.now().timestamp(),
                     'yaw': yaw_predicted.item(),
@@ -217,7 +219,7 @@ def main():
                 ###################################################################################################
 
         data = {
-            'id': str(id),
+            'id': str(userid),
             'record': record
         }
         frame_stream = cv2.resize(frame.copy(), (0,0), fx=0.5, fy=0.5)
@@ -297,5 +299,15 @@ def single_image_test():
 
 
 if __name__ == '__main__':
-    main()
+    parser = argparse.ArgumentParser(description='This is a attention monitor program')
+    parser.add_argument('--userid', help='user id', required=True)
+    parser.add_argument('--host', help='host ip', default="localhost")
+
+    args = parser.parse_args()
+    userid = args.userid
+    host = args.host
+
+    print(args)
+
+    main(userid, host)
     # single_image_test()
