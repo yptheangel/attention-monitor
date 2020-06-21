@@ -70,7 +70,7 @@ class MetricsMonitor(object):
             self.traces[name].setData(data_x, data_y)
         else:
             if name == 'mar':
-                self.traces[name] = self.ratios.plot(pen='c', width=3,fillLevel=0,fillBrush=(255,255,255,30))
+                self.traces[name] = self.ratios.plot(pen='c', width=3,fillLevel=0,fillBrush=(0,255,255,80))
                 self.ratios.setYRange(0, 1, padding=0)
                 self.ratios.setXRange(0, 2 * 60, padding=0.005)
             elif name == 'ear':
@@ -78,7 +78,7 @@ class MetricsMonitor(object):
                 self.ratios.setYRange(0, 1, padding=0)
                 self.ratios.setXRange(0, 2 * 60, padding=0.005)
             elif name == 'yaw':
-                self.traces[name] = self.poses.plot(pen='r', width=3,fillLevel=0,fillBrush=(255,255,255,30))
+                self.traces[name] = self.poses.plot(pen='r', width=3,fillLevel=0,fillBrush=(255,0,0,80))
                 self.poses.setYRange(-45, 45, padding=0)
                 self.poses.setXRange(0, 2 * 60, padding=0.005)
             elif name == 'pitch':
