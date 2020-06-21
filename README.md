@@ -1,5 +1,8 @@
 # Attention Monitor
 
+Client:
+`python main.py --userid 123`
+
 TODO:
 
 - [ ] Real time data viz using vispy
