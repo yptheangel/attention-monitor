@@ -226,21 +226,21 @@ def main(userid, host):
         publish(frame_stream, data)
         record = None
 
-        cv2.putText(frame_display, "Blink Count: " + str(blinkCount), (10, 30), fontFace=cv2.FONT_HERSHEY_SIMPLEX,
-                    fontScale=1.0, color=(255, 0, 0), thickness=2)
-        cv2.putText(frame_display, "Yawn Count: " + str(yawnCount), (10, 60), fontFace=cv2.FONT_HERSHEY_SIMPLEX,
-                    fontScale=1.0, color=(255, 0, 0), thickness=2)
+        cv2.putText(frame_display, "Blink Count: " + str(blinkCount), (10, 20), fontFace=cv2.FONT_HERSHEY_SIMPLEX,
+                    fontScale=0.5, color=(255, 0, 0), thickness=1)
+        cv2.putText(frame_display, "Yawn Count: " + str(yawnCount), (10, 40), fontFace=cv2.FONT_HERSHEY_SIMPLEX,
+                    fontScale=0.5, color=(255, 0, 0), thickness=1)
 
-        cv2.putText(frame_display, "Lost Focus Count: " + str(lostFocusCount), (10, 90),
+        cv2.putText(frame_display, "Lost Focus Count: " + str(lostFocusCount), (10, 70),
                     fontFace=cv2.FONT_HERSHEY_SIMPLEX,
-                    fontScale=1.0, color=(255, 0, 0), thickness=2)
-        cv2.putText(frame_display, "Lost Focus Duration: " + str(round(lostFocusDuration)), (10, 120),
+                    fontScale=0.5, color=(255, 0, 0), thickness=1)
+        cv2.putText(frame_display, "Lost Focus Duration: " + str(round(lostFocusDuration)), (10, 90),
                     fontFace=cv2.FONT_HERSHEY_SIMPLEX,
-                    fontScale=1.0, color=(255, 0, 0), thickness=2)
+                    fontScale=0.5, color=(255, 0, 0), thickness=1)
 
-        cv2.putText(frame_display, "Face Not Present Duration: " + str(round(faceNotPresentDuration)), (10, 150),
+        cv2.putText(frame_display, "Face Not Present Duration: " + str(round(faceNotPresentDuration)), (10, 110),
                     fontFace=cv2.FONT_HERSHEY_SIMPLEX,
-                    fontScale=1.0, color=(255, 0, 0), thickness=2)
+                    fontScale=0.5, color=(255, 0, 0), thickness=1)
 
         cv2.imshow('frame', cv2.cvtColor(frame_display, cv2.COLOR_RGB2BGR))
 
@@ -306,8 +306,6 @@ if __name__ == '__main__':
     args = parser.parse_args()
     userid = args.userid
     host = args.host
-
-    print(args)
 
     main(userid, host)
     # single_image_test()
