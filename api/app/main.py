@@ -22,12 +22,12 @@ def get_user_data(user_id):
         KeyConditionExpression=Key('id').eq(str(user_id))
     )
 
-    df = pd.DataFrame(response.json()['Items'])
+    df = pd.DataFrame(response['Items'])
 
     df[['blink_count', 'id', 'lost_focus_count', 'yawn_count']] = df[
         ['blink_count', 'id', 'lost_focus_count', 'yawn_count']].astype(int)
-    df[['ear', 'face_not_present_duration', 'lost_focus_duration', 'pitch', 'roll', 'yaw', 'mar']] = df[
-        ['ear', 'face_not_present_duration', 'lost_focus_duration', 'pitch', 'roll', 'yaw', 'mar']].astype(float)
+    df[['ear', 'face_not_present_duration', 'lost_focus_duration', 'pitch', 'roll', 'yaw', 'mar', 'timestamp']] = df[
+        ['ear', 'face_not_present_duration', 'lost_focus_duration', 'pitch', 'roll', 'yaw', 'mar', 'timestamp']].astype(float)
 
     df["datetime"] = pd.to_datetime(df['timestamp'], unit='s')
     df2 = df.set_index('timestamp').sort_index(ascending=True)
@@ -66,7 +66,7 @@ def get_user_data(user_id):
     }
 
     ypr = df2[['yaw', 'pitch', 'roll', 'datetime']]
-    ypr['datetime'] = ypr['datetime'].map(lambda x: str(x.time()))
+    ypr.loc[:, 'datetime'] = ypr['datetime'].map(lambda x: str(x.time()))
 
     ypr_final = [{'date': row['datetime'], 'type': 'yaw', 'value': row['yaw']} for i, row in
                  ypr[['yaw', 'datetime']].iterrows()]
