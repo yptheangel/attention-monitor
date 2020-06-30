@@ -48,9 +48,10 @@ kinesis = boto3.client('kinesis', region_name=awsRegion)
 #zmq
 context = SerializingContext()
 socket = context.socket(zmq.PUB)
+# socket.connect("tcp://10.10.10.163:5555")
 socket.connect("tcp://localhost:5555")
 
-id=101
+id=123
 
 # def send_record():
 #     # threading.Timer(5.0, send_record).start()
