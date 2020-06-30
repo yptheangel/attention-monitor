@@ -41,7 +41,10 @@ socket = context.socket(zmq.PUB)
 def main(userid, host):
     socket.connect("tcp://" + host + ":5555")
 
-    cap = cv2.VideoCapture(0)
+    # cap = cv2.VideoCapture(0)
+    testvideo=r"C:\Users\ChooWilson\Desktop\testvideo.mp4"
+    cap = cv2.VideoCapture(testvideo)
+
     blinkCount = 0
     yawnCount = 0
 
@@ -64,155 +67,159 @@ def main(userid, host):
 
     facepose = Facepose()
 
-    while True:
+    # while True:
+    while cap.isOpened():
         # fps_count_start_time = time.time()
-
         ret, frame = cap.read()
-        frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-        frame = cv2.flip(frame, 1)
-        frame_display = frame.copy()
-        gray = cv2.cvtColor(frame.copy(), cv2.COLOR_BGR2GRAY)
+        if not ret:
+            cap.set(cv2.CAP_PROP_POS_FRAMES, 0)
+        else:
+            frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+            frame = cv2.flip(frame, 1)
+            frame_display = frame.copy()
+            gray = cv2.cvtColor(frame.copy(), cv2.COLOR_BGR2GRAY)
 
-        # control FPS
-        time_elapsed = time.time() - prev
-        if time_elapsed > 1. / frame_rate_use:
-            prev = time.time()
+            # control FPS
+            time_elapsed = time.time() - prev
+            if time_elapsed > 1. / frame_rate_use:
+                prev = time.time()
 
-            rects = detector(gray, 0)
+                rects = detector(gray, 0)
 
-            if len(rects) == 0:
-                if faceTimer == None:
-                    faceTimer = time.time()
-                faceNotPresentDuration += time.time() - faceTimer;
-                faceTimer = time.time();
+                if len(rects) == 0:
+                    if faceTimer == None:
+                        faceTimer = time.time()
+                    faceNotPresentDuration += time.time() - faceTimer;
+                    faceTimer = time.time();
 
-            for (i, rect) in enumerate(rects):
-                faceTimer = None
+                for (i, rect) in enumerate(rects):
+                    faceTimer = None
 
-                shape = predictor(gray, rect)
-                shape = face_utils.shape_to_np(shape)
+                    shape = predictor(gray, rect)
+                    shape = face_utils.shape_to_np(shape)
 
-                leftEye = shape[36:42]
-                # print(f"leftEye{leftEye}")
-                rightEye = shape[42:48]
-                # print(f"righti{rightEye}")
-                leftEAR = eye_aspect_ratio(leftEye)
-                rightEAR = eye_aspect_ratio(rightEye)
-                # average the eye aspect ratio together for both eyes
-                ear = (leftEAR + rightEAR) / 2.0
-                # print(ear)
-                mar = mouth_aspect_ratio(shape[60:69])
-                # print(mar)
+                    leftEye = shape[36:42]
+                    # print(f"leftEye{leftEye}")
+                    rightEye = shape[42:48]
+                    # print(f"righti{rightEye}")
+                    leftEAR = eye_aspect_ratio(leftEye)
+                    rightEAR = eye_aspect_ratio(rightEye)
+                    # average the eye aspect ratio together for both eyes
+                    ear = (leftEAR + rightEAR) / 2.0
+                    # print(ear)
+                    mar = mouth_aspect_ratio(shape[60:69])
+                    # print(mar)
 
-                if ear < 0.15:
-                    eyeClosed = True
-                if ear > 0.15 and eyeClosed:
-                    blinkCount += 1
-                    eyeClosed = False
+                    if ear < 0.15:
+                        eyeClosed = True
+                    if ear > 0.15 and eyeClosed:
+                        blinkCount += 1
+                        eyeClosed = False
 
-                if mar > 0.4:
-                    # cv2.putText(frame_display, "Yawning! ", (10, 90), fontFace=cv2.FONT_HERSHEY_SIMPLEX, fontScale=1.0,
-                    #             color=(255, 0, 0), thickness=2)
-                    yawning = True
-                if mar < 0.2 and yawning:
-                    yawnCount += 1
-                    yawning = False
+                    if mar > 0.4:
+                        # cv2.putText(frame_display, "Yawning! ", (10, 90), fontFace=cv2.FONT_HERSHEY_SIMPLEX, fontScale=1.0,
+                        #             color=(255, 0, 0), thickness=2)
+                        yawning = True
+                    if mar < 0.2 and yawning:
+                        yawnCount += 1
+                        yawning = False
 
-                # Draw circle to show landmarks
-                # for idx, (x, y) in enumerate(shape):
-                #     if idx in range(36, 48):
-                #         cv2.circle(frame_display, (x, y), 2, (0, 255, 0), -1)
-                #     elif idx in range(60, 68):
-                #         cv2.circle(frame_display, (x, y), 2, (0, 0, 255), -1)
-                # Uncomment if you want to visualize all other landmarks
-                # else:
-                #     cv2.circle(frame, (x, y), 2, (255, 0, 0), -1)
+                    # Draw circle to show landmarks
+                    # for idx, (x, y) in enumerate(shape):
+                    #     if idx in range(36, 48):
+                    #         cv2.circle(frame_display, (x, y), 2, (0, 255, 0), -1)
+                    #     elif idx in range(60, 68):
+                    #         cv2.circle(frame_display, (x, y), 2, (0, 0, 255), -1)
+                    # Uncomment if you want to visualize all other landmarks
+                    # else:
+                    #     cv2.circle(frame, (x, y), 2, (255, 0, 0), -1)
 
-                roi_box, center_x, center_y = rec_to_roi_box(rect)
+                    roi_box, center_x, center_y = rec_to_roi_box(rect)
 
-                roi_img = crop_img(frame, roi_box)
+                    roi_img = crop_img(frame, roi_box)
 
-                img = Image.fromarray(roi_img)
+                    img = Image.fromarray(roi_img)
 
-                (yaw_predicted, pitch_predicted, roll_predicted) = facepose.predict(img)
+                    (yaw_predicted, pitch_predicted, roll_predicted) = facepose.predict(img)
 
-                # print(yaw_predicted.item(), pitch_predicted.item(), roll_predicted.item())
-                if yaw_predicted.item() < -30 or yaw_predicted.item() > 30:
-                    lostFocus = True
-                    if focusTimer == None:
-                        focusTimer = time.time()
+                    # print(yaw_predicted.item(), pitch_predicted.item(), roll_predicted.item())
+                    if yaw_predicted.item() < -30 or yaw_predicted.item() > 30:
+                        lostFocus = True
+                        if focusTimer == None:
+                            focusTimer = time.time()
 
-                    lostFocusDuration += time.time() - focusTimer;
-                    focusTimer = time.time();
-                if (yaw_predicted.item() > -30 and yaw_predicted.item() < 30) and lostFocus:
-                    lostFocusCount += 1
-                    lostFocus = False
-                    focusTimer = None
+                        lostFocusDuration += time.time() - focusTimer;
+                        focusTimer = time.time();
+                    if (yaw_predicted.item() > -30 and yaw_predicted.item() < 30) and lostFocus:
+                        lostFocusCount += 1
+                        lostFocus = False
+                        focusTimer = None
 
-                # plot_pose_cube(frame, yaw_predicted, pitch_predicted, roll_predicted, tdx=int(center_x), tdy=int(center_y),
-                #                size=100)
+                    # plot_pose_cube(frame, yaw_predicted, pitch_predicted, roll_predicted, tdx=int(center_x), tdy=int(center_y),
+                    #                size=100)
 
-                # draw_axis(frame_display, yaw_predicted.numpy(), pitch_predicted.numpy(), roll_predicted.numpy(),
-                #           tdx=int(center_x), tdy=int(center_y), size=100)
+                    # draw_axis(frame_display, yaw_predicted.numpy(), pitch_predicted.numpy(), roll_predicted.numpy(),
+                    #           tdx=int(center_x), tdy=int(center_y), size=100)
 
-                # prepare to put records in kinesis
-                ###################################################################################################
-                record = {
-                    'id': str(userid),
-                    'sortKey': str(uuid.uuid1()),
-                    'timestamp': datetime.now().timestamp(),
-                    'yaw': yaw_predicted.item(),
-                    'pitch': pitch_predicted.item(),
-                    'roll': roll_predicted.item(),
-                    'ear': ear,
-                    'blink_count': blinkCount,
-                    'mar': mar,
-                    'yawn_count': yawnCount,
-                    'lost_focus_count': lostFocusCount,
-                    'lost_focus_duration': lostFocusDuration,
-                    'face_not_present_duration': faceNotPresentDuration
-                }
-                # print(record)
-                # data = json.dumps(record)
-                # records.append({'Data': bytes(data, 'utf-8'), 'PartitionKey': str(id)})
-                #
-                # if len(records) >= 10:
-                #     put_response = kinesis.put_records(StreamName=inputStream, Records=records)
-                #     time.sleep(0.5)
-                #     print("sending record...")
-                #     print(put_response)
-                #     records = []
-                ###################################################################################################
+                    # prepare to put records in kinesis
+                    ###################################################################################################
+                    record = {
+                        'id': str(userid),
+                        'sortKey': str(uuid.uuid1()),
+                        'timestamp': datetime.now().timestamp(),
+                        'yaw': yaw_predicted.item(),
+                        'pitch': pitch_predicted.item(),
+                        'roll': roll_predicted.item(),
+                        'ear': ear,
+                        'blink_count': blinkCount,
+                        'mar': mar,
+                        'yawn_count': yawnCount,
+                        'lost_focus_count': lostFocusCount,
+                        'lost_focus_duration': lostFocusDuration,
+                        'face_not_present_duration': faceNotPresentDuration
+                    }
+                    # print(record)
+                    # data = json.dumps(record)
+                    # records.append({'Data': bytes(data, 'utf-8'), 'PartitionKey': str(id)})
+                    #
+                    # if len(records) >= 10:
+                    #     put_response = kinesis.put_records(StreamName=inputStream, Records=records)
+                    #     time.sleep(0.5)
+                    #     print("sending record...")
+                    #     print(put_response)
+                    #     records = []
+                    ###################################################################################################
 
-        data = {
-            'id': str(userid),
-            'record': record
-        }
-        frame_stream = cv2.resize(frame.copy(), (0, 0), fx=0.5, fy=0.5)
-        publish(frame_stream, data)
-        record = None
+            data = {
+                'id': str(userid),
+                'record': record
+            }
+            frame_stream = cv2.resize(frame.copy(), (0, 0), fx=0.5, fy=0.5)
+            publish(frame_stream, data)
+            record = None
 
-        cv2.putText(frame_display, "Blink Count: " + str(blinkCount), (10, 20), fontFace=cv2.FONT_HERSHEY_SIMPLEX,
-                    fontScale=0.5, color=(255, 0, 0), thickness=1)
-        cv2.putText(frame_display, "Yawn Count: " + str(yawnCount), (10, 40), fontFace=cv2.FONT_HERSHEY_SIMPLEX,
-                    fontScale=0.5, color=(255, 0, 0), thickness=1)
+            cv2.putText(frame_display, "Blink Count: " + str(blinkCount), (10, 20), fontFace=cv2.FONT_HERSHEY_SIMPLEX,
+                        fontScale=0.5, color=(255, 0, 0), thickness=1)
+            cv2.putText(frame_display, "Yawn Count: " + str(yawnCount), (10, 40), fontFace=cv2.FONT_HERSHEY_SIMPLEX,
+                        fontScale=0.5, color=(255, 0, 0), thickness=1)
 
-        cv2.putText(frame_display, "Lost Focus Count: " + str(lostFocusCount), (10, 70),
-                    fontFace=cv2.FONT_HERSHEY_SIMPLEX,
-                    fontScale=0.5, color=(255, 0, 0), thickness=1)
-        cv2.putText(frame_display, "Lost Focus Duration: " + str(round(lostFocusDuration)), (10, 90),
-                    fontFace=cv2.FONT_HERSHEY_SIMPLEX,
-                    fontScale=0.5, color=(255, 0, 0), thickness=1)
+            cv2.putText(frame_display, "Lost Focus Count: " + str(lostFocusCount), (10, 70),
+                        fontFace=cv2.FONT_HERSHEY_SIMPLEX,
+                        fontScale=0.5, color=(255, 0, 0), thickness=1)
+            cv2.putText(frame_display, "Lost Focus Duration: " + str(round(lostFocusDuration)), (10, 90),
+                        fontFace=cv2.FONT_HERSHEY_SIMPLEX,
+                        fontScale=0.5, color=(255, 0, 0), thickness=1)
 
-        cv2.putText(frame_display, "Face Not Present Duration: " + str(round(faceNotPresentDuration)), (10, 110),
-                    fontFace=cv2.FONT_HERSHEY_SIMPLEX,
-                    fontScale=0.5, color=(255, 0, 0), thickness=1)
+            cv2.putText(frame_display, "Face Not Present Duration: " + str(round(faceNotPresentDuration)), (10, 110),
+                        fontFace=cv2.FONT_HERSHEY_SIMPLEX,
+                        fontScale=0.5, color=(255, 0, 0), thickness=1)
 
-        cv2.imshow('frame', cv2.cvtColor(frame_display, cv2.COLOR_RGB2BGR))
+            cv2.imshow('frame', cv2.cvtColor(frame_display, cv2.COLOR_RGB2BGR))
 
-        # print("FPS: ", 1.0 / (time.time() - fps_count_start_time))
-        if cv2.waitKey(1) & 0xFF == ord('q'):
-            break
+            # print("FPS: ", 1.0 / (time.time() - fps_count_start_time))
+            # if cv2.waitKey(1) & 0xFF == ord('q'):
+            if cv2.waitKey(10) & 0xFF == ord('q'):
+                break
 
     cap.release()
     cv2.destroyAllWindows()
