@@ -46,7 +46,7 @@ def main(userid, host):
     socket.connect("tcp://" + host + ":5555")
 
     # cap = cv2.VideoCapture(0)
-    testvideo=r"C:\Users\ChooWilson\Desktop\testvideo.mp4"
+    testvideo=r"C:\Users\ChooWilson\Desktop\attention-monitor\test_video2.mp4"
     cap = cv2.VideoCapture(testvideo)
 
     blinkCount = 0
@@ -221,8 +221,7 @@ def main(userid, host):
             cv2.imshow('frame', cv2.cvtColor(frame_display, cv2.COLOR_RGB2BGR))
 
             # print("FPS: ", 1.0 / (time.time() - fps_count_start_time))
-            # if cv2.waitKey(1) & 0xFF == ord('q'):
-            if cv2.waitKey(10) & 0xFF == ord('q'):
+            if cv2.waitKey(1) & 0xFF == ord('q'):
                 break
 
     cap.release()
@@ -237,7 +236,6 @@ def publish(image, data):
         # else make it contiguous before sending
         image = np.ascontiguousarray(image)
         socket.send_array(image, data, copy=False)
-
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='This is a attention monitor program')

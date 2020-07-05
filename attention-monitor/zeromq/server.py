@@ -1,6 +1,8 @@
 import zmq
 import cv2
-from zeromq.SerializingContext import SerializingContext
+# from zeromq.SerializingContext import SerializingContext
+from SerializingContext import SerializingContext
+
 
 context = SerializingContext()
 socket = context.socket(zmq.SUB)
