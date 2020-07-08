@@ -60,8 +60,7 @@ def subscribe(copy=False):
     return msg, image
 
 def monitor(q):
-    monitor_app = MetricsMonitor()
-    monitor_app.stream(q)
+    monitor_app = MetricsMonitor(q)
     monitor_app.animation()
 
 if __name__ == '__main__':

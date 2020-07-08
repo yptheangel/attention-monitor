@@ -4,18 +4,16 @@ import numpy as np
 import pyqtgraph as pg
 from pyqtgraph.Qt import QtGui, QtCore
 
-class MetricsMonitor(object):
-    def __init__(self):
-
-        # pyqtgraph stuff
+class MetricsMonitor():
+    def __init__(self,queue):
+        self.queue = queue
         pg.setConfigOptions(antialias=True)
         self.traces = dict()
         self.app = QtGui.QApplication(sys.argv)
         self.win = pg.GraphicsWindow(title='Attention Monitor')
-        self.win.setWindowTitle('Attention Monitor')
+        self.win.setWindowTitle('Attention Monitor: william')
 
         # set size of output window
-        # self.win.setGeometry(5, 115, 1280, 720)
         self.win.setGeometry(5, 115, 640, 480)
 
         ratios_xlabels = [(0, '0'), (60, '60'), (120, '120')]
@@ -89,12 +87,9 @@ class MetricsMonitor(object):
                 self.poses.setYRange(-45, 45, padding=0)
                 self.poses.setXRange(0, 2 * 60, padding=0.005)
 
-    def stream(self, q1):
-        self.q1 = q1
-
     def update(self):
-        if not self.q1.empty():
-            self.dict = self.q1.get()
+        if not self.queue.empty():
+            self.dict = self.queue.get()
             print("get")
             self.mar = self.dict["mar_stream"]
             self.ear = self.dict["ear_stream"]
@@ -113,7 +108,3 @@ class MetricsMonitor(object):
         timer.timeout.connect(self.update)
         timer.start(30)
         self.start()
-
-if __name__ == '__main__':
-    monitor_app = MetricsMonitor()
-    monitor_app.animation()
