@@ -13,15 +13,13 @@ TODO:
 - [ ] face,person detection - attendance
 - [ ] human pose estimation - engagement, ergonomics
 
-### Pretrained Weight
+### Contributors
+William Ardianto, Kenghooi Teoh, Leonard Loh, Choo Wilson.
 
+### Pretrained Weights
 - [Dlib face landmarks weight - GDRIVE](https://drive.google.com/file/d/1o-lotnZJcSCuHixTI9ponYNXjBmbMggt/view?usp=sharing)
 - [Dlib face landmarks weight](https://github.com/AKSHAYUBHAT/TensorFace/blob/master/openface/models/dlib/shape_predictor_68_face_landmarks.dat)
 - [Hopenet pretrained weight](https://drive.google.com/open?id=1m25PrSE7g9D2q2XJVMR6IA7RaCvWSzCR)
-
-
-### Contributors
-William Ardianto, Kenghooi Teoh, Leonard Loh, Choo Wilson.
 
 ### References
 
