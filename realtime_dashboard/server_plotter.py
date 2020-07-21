@@ -35,7 +35,7 @@ def server(q):
             this_dict["pitch_stream"] = np.append(this_dict["pitch_stream"][1:], data['record']['pitch'])
             this_dict["roll_stream"] = np.append(this_dict["roll_stream"][1:], data['record']['roll'])
             q.put(this_dict)
-            print("put")
+            # print("put")
 
             # print(data['record']['yawn_count'])
             # print(data['record']['blink_count'])

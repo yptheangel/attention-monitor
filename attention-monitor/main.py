@@ -46,7 +46,7 @@ def main(userid, host):
     socket.connect("tcp://" + host + ":5555")
 
     # cap = cv2.VideoCapture(0)
-    testvideo=r"C:\Users\ChooWilson\Desktop\videos\william.mp4"
+    testvideo=r"C:\Users\choowilson\Desktop\data_center\attention-monitor\jingzhi.mp4"
     cap = cv2.VideoCapture(testvideo)
 
     blinkCount = 0

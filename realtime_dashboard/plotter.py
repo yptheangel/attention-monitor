@@ -11,7 +11,7 @@ class MetricsMonitor():
         self.traces = dict()
         self.app = QtGui.QApplication(sys.argv)
         self.win = pg.GraphicsWindow(title='Attention Monitor')
-        self.win.setWindowTitle('Attention Monitor: william')
+        self.win.setWindowTitle('Attention Monitor')
 
         # set size of output window
         self.win.setGeometry(5, 115, 640, 480)
@@ -90,7 +90,7 @@ class MetricsMonitor():
     def update(self):
         if not self.queue.empty():
             self.dict = self.queue.get()
-            print("get")
+            # print("get")
             self.mar = self.dict["mar_stream"]
             self.ear = self.dict["ear_stream"]
             self.yaw = self.dict["yaw_stream"]
