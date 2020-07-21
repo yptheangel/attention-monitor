@@ -1,8 +1,7 @@
 # Online Classroom Attention Tracker (OCAT)
 
-<p align="center">
-![Online Class Attention Tracker](5fps.gif "Online Class Attention Tracker")
-</p>
+
+![Online Class Attention Tracker](5fps.gif?style=centerme "Online Class Attention Tracker")
 
 Client:
 `python main.py --userid 123`
@@ -32,5 +31,7 @@ William Ardianto, Kenghooi Teoh, Leonard Loh, Choo Wilson.
 - [PyImageSearch](https://www.pyimagesearch.com/2017/04/03/facial-landmarks-dlib-opencv-python/) Facial landmarks with dlib, OpenCV, and Python
 - [PyImageSearch](https://www.pyimagesearch.com/2017/05/08/drowsiness-detection-opencv/) Drowsiness detection with OpenCV 
 
-
-
+img[src$="centerme"] {
+  display:block;
+  margin: 0 auto;
+}
