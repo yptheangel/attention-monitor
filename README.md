@@ -1,5 +1,6 @@
 # Online Classroom Attention Tracker (OCAT)
 
+
 ![Online Class Attention Tracker](5fps.gif "Online Class Attention Tracker")
 
 Client:
@@ -29,6 +30,3 @@ William Ardianto, Kenghooi Teoh, Leonard Loh, Choo Wilson.
 - [Hopenet](https://github.com/natanielruiz/deep-head-pose) by *Nataniel Ruiz*
 - [PyImageSearch](https://www.pyimagesearch.com/2017/04/03/facial-landmarks-dlib-opencv-python/) Facial landmarks with dlib, OpenCV, and Python
 - [PyImageSearch](https://www.pyimagesearch.com/2017/05/08/drowsiness-detection-opencv/) Drowsiness detection with OpenCV 
-
-
-
