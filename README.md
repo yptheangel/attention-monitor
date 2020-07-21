@@ -3,13 +3,8 @@
 Client:
 `python main.py --userid 123`
 
-TODO:
+`python main.py --userid kenghooi --host 10.10.0.106`
 
-- [ ] Real time data viz using vispy
-- [ ] face landmarks -eye, mouth monitor
-- [ ] eye gaze tracking
-- [ ] face,person detection - attendance
-- [ ] human pose estimation - engagement, ergonomics
 
 ### Pretrained Weight
 

@@ -59,10 +59,13 @@ def main(userid, host):
     record = None
 
     # control FPS
-    frame_rate_use = 3
+    frame_rate_use = 5
     prev = 0
 
     facepose = Facepose()
+
+    shape = None
+    yaw_predicted, pitch_predicted, roll_predicted=None, None, None
 
     while True:
         # fps_count_start_time = time.time()
@@ -149,11 +152,6 @@ def main(userid, host):
                     lostFocus = False
                     focusTimer = None
 
-                # plot_pose_cube(frame, yaw_predicted, pitch_predicted, roll_predicted, tdx=int(center_x), tdy=int(center_y),
-                #                size=100)
-
-                # draw_axis(frame_display, yaw_predicted.numpy(), pitch_predicted.numpy(), roll_predicted.numpy(),
-                #           tdx=int(center_x), tdy=int(center_y), size=100)
 
                 # prepare to put records in kinesis
                 ###################################################################################################
@@ -184,13 +182,13 @@ def main(userid, host):
                 #     records = []
                 ###################################################################################################
 
-        data = {
-            'id': str(userid),
-            'record': record
-        }
-        frame_stream = cv2.resize(frame.copy(), (0, 0), fx=0.5, fy=0.5)
-        publish(frame_stream, data)
-        record = None
+            data = {
+                'id': str(userid),
+                'record': record
+            }
+            frame_stream = cv2.resize(frame.copy(), (0, 0), fx=0.5, fy=0.5)
+            publish(frame_stream, data)
+            record = None
 
         cv2.putText(frame_display, "Blink Count: " + str(blinkCount), (10, 20), fontFace=cv2.FONT_HERSHEY_SIMPLEX,
                     fontScale=0.5, color=(255, 0, 0), thickness=1)
@@ -207,6 +205,19 @@ def main(userid, host):
         cv2.putText(frame_display, "Face Not Present Duration: " + str(round(faceNotPresentDuration)), (10, 110),
                     fontFace=cv2.FONT_HERSHEY_SIMPLEX,
                     fontScale=0.5, color=(255, 0, 0), thickness=1)
+
+        if shape is not None and len(list(rects)) is not 0:
+            rect = list(rects)[0]
+            draw_border(frame_display,  (rect.left(),rect.top()), (rect.left()+rect.width(), rect.top()+rect.height()), (255,255,255), 1, 10, 20)
+
+            draw_axis(frame_display, yaw_predicted.item(), pitch_predicted.item(), roll_predicted.item(),
+                      tdx=int(center_x), tdy=int(center_y), size=100)
+            for idx, (x, y) in enumerate(shape):
+                cv2.circle(frame_display, (x, y), 2, (255, 255, 0), -1)
+                if idx in range(36, 48):
+                    cv2.circle(frame_display, (x, y), 2, (0, 255, 255), -1)
+                elif idx in range(60, 68):
+                    cv2.circle(frame_display, (x, y), 2, (255, 0, 255), -1)
 
         cv2.imshow('frame', cv2.cvtColor(frame_display, cv2.COLOR_RGB2BGR))
 
@@ -226,6 +237,31 @@ def publish(image, data):
         # else make it contiguous before sending
         image = np.ascontiguousarray(image)
         socket.send_array(image, data, copy=False)
+
+
+def draw_border(img, pt1, pt2, color, thickness, r, d):
+    x1,y1 = pt1
+    x2,y2 = pt2
+
+    # Top left
+    cv2.line(img, (x1 + r, y1), (x1 + r + d, y1), color, thickness)
+    cv2.line(img, (x1, y1 + r), (x1, y1 + r + d), color, thickness)
+    cv2.ellipse(img, (x1 + r, y1 + r), (r, r), 180, 0, 90, color, thickness)
+
+    # Top right
+    cv2.line(img, (x2 - r, y1), (x2 - r - d, y1), color, thickness)
+    cv2.line(img, (x2, y1 + r), (x2, y1 + r + d), color, thickness)
+    cv2.ellipse(img, (x2 - r, y1 + r), (r, r), 270, 0, 90, color, thickness)
+
+    # Bottom left
+    cv2.line(img, (x1 + r, y2), (x1 + r + d, y2), color, thickness)
+    cv2.line(img, (x1, y2 - r), (x1, y2 - r - d), color, thickness)
+    cv2.ellipse(img, (x1 + r, y2 - r), (r, r), 90, 0, 90, color, thickness)
+
+    # Bottom right
+    cv2.line(img, (x2 - r, y2), (x2 - r - d, y2), color, thickness)
+    cv2.line(img, (x2, y2 - r), (x2, y2 - r - d), color, thickness)
+    cv2.ellipse(img, (x2 - r, y2 - r), (r, r), 0, 0, 90, color, thickness)
 
 
 if __name__ == '__main__':

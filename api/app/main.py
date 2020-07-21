@@ -3,20 +3,22 @@ import json
 import boto3
 from boto3.dynamodb.conditions import Key
 from decimal import Decimal
-import requests
 import pandas as pd
-
+from flask_cors import CORS, cross_origin
 
 dynamodb = boto3.resource('dynamodb', region_name='ap-southeast-1')
 table = dynamodb.Table('test-table5')
 
 app = Flask(__name__)
+cors = CORS(app)
+app.config['CORS_HEADERS'] = 'Content-Type'
 
 @app.route("/")
 def hello():
     return "Hello World from Flask"
 
 @app.route('/user/<int:user_id>')
+@cross_origin()
 def get_user_data(user_id):
     response = table.query(
         KeyConditionExpression=Key('id').eq(str(user_id))
