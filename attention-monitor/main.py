@@ -8,6 +8,7 @@ import dlib
 import zmq
 from PIL import Image
 from imutils import face_utils
+import json
 
 from facepose import Facepose
 from utils import *
@@ -57,6 +58,7 @@ def main(userid, host):
     lostFocus = False
 
     record = None
+    records = []
 
     # control FPS
     frame_rate_use = 5
@@ -170,16 +172,15 @@ def main(userid, host):
                     'lost_focus_duration': lostFocusDuration,
                     'face_not_present_duration': faceNotPresentDuration
                 }
-                # print(record)
-                # data = json.dumps(record)
-                # records.append({'Data': bytes(data, 'utf-8'), 'PartitionKey': str(id)})
-                #
-                # if len(records) >= 10:
-                #     put_response = kinesis.put_records(StreamName=inputStream, Records=records)
-                #     time.sleep(0.5)
-                #     print("sending record...")
-                #     print(put_response)
-                #     records = []
+                print(record)
+                records.append({'Data': bytes(json.dumps(record), 'utf-8'), 'PartitionKey': str(id)})
+
+                if len(records) >= 10:
+                    put_response = kinesis.put_records(StreamName=inputStream, Records=records)
+                    time.sleep(0.5)
+                    print("sending record...")
+                    print(put_response)
+                    records = []
                 ###################################################################################################
 
             data = {
