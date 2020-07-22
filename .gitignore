@@ -133,3 +133,41 @@ dmypy.json
 .pyre/
 .vscode/settings.json
 attention-monitor/data.csv
+
+# react app
+myApp/**/node_modules
+# roadhog-api-doc ignore
+myApp//src/utils/request-temp.js
+myApp/_roadhog-api-doc
+
+# production
+myApp/dist
+myApp/.vscode
+
+# misc
+myApp/.DS_Store
+myApp/npm-debug.log*
+myApp/yarn-error.log
+
+myApp/coverage
+myApp/yarn.lock
+myApp/package-lock.json
+myApp/*bak
+myApp/.vscode
+
+# visual studio code
+myApp/.history
+myApp/*.log
+myApp/functions/*
+myApp/.temp/**
+
+# umi
+myApp/.umi
+myApp/.umi-production
+
+# screenshot
+myApp/screenshot
+myApp/.firebase
+myApp/.eslintcache
+
+myApp/build
