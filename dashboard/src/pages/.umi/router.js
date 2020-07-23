@@ -8,7 +8,7 @@ import {
 import dynamic from 'umi/dynamic';
 import renderRoutes from 'umi/lib/renderRoutes';
 import history from '@@/history';
-import RendererWrapper0 from 'D:/Repos/attention-dashboard-jsx/myApp/src/pages/.umi/LocaleWrapper.jsx';
+import RendererWrapper0 from 'D:/Repos/Attention-monitor/myApp/src/pages/.umi/LocaleWrapper.jsx';
 import { routerRedux, dynamic as _dvaDynamic } from 'dva';
 
 const Router = routerRedux.ConnectedRouter;
@@ -20,7 +20,7 @@ const routes = [
       ? _dvaDynamic({
           component: () =>
             import(/* webpackChunkName: "layouts__SecurityLayout" */ '../../layouts/SecurityLayout'),
-          LoadingComponent: require('D:/Repos/attention-dashboard-jsx/myApp/src/components/PageLoading/index')
+          LoadingComponent: require('D:/Repos/Attention-monitor/myApp/src/components/PageLoading/index')
             .default,
         })
       : require('../../layouts/SecurityLayout').default,
@@ -31,7 +31,7 @@ const routes = [
           ? _dvaDynamic({
               component: () =>
                 import(/* webpackChunkName: "layouts__BasicLayout" */ '../../layouts/BasicLayout'),
-              LoadingComponent: require('D:/Repos/attention-dashboard-jsx/myApp/src/components/PageLoading/index')
+              LoadingComponent: require('D:/Repos/Attention-monitor/myApp/src/components/PageLoading/index')
                 .default,
             })
           : require('../../layouts/BasicLayout').default,
@@ -54,7 +54,7 @@ const routes = [
                   ? _dvaDynamic({
                       component: () =>
                         import(/* webpackChunkName: "layouts__BasicLayout" */ '../dashboard/analysis'),
-                      LoadingComponent: require('D:/Repos/attention-dashboard-jsx/myApp/src/components/PageLoading/index')
+                      LoadingComponent: require('D:/Repos/Attention-monitor/myApp/src/components/PageLoading/index')
                         .default,
                     })
                   : require('../dashboard/analysis').default,
@@ -68,7 +68,7 @@ const routes = [
                   ? _dvaDynamic({
                       component: () =>
                         import(/* webpackChunkName: "layouts__BasicLayout" */ '../dashboard/monitor'),
-                      LoadingComponent: require('D:/Repos/attention-dashboard-jsx/myApp/src/components/PageLoading/index')
+                      LoadingComponent: require('D:/Repos/Attention-monitor/myApp/src/components/PageLoading/index')
                         .default,
                     })
                   : require('../dashboard/monitor').default,
@@ -77,7 +77,7 @@ const routes = [
               {
                 component: () =>
                   React.createElement(
-                    require('D:/Repos/attention-dashboard-jsx/myApp/node_modules/umi-build-dev/lib/plugins/404/NotFound.js')
+                    require('D:/Repos/Attention-monitor/myApp/node_modules/umi-build-dev/lib/plugins/404/NotFound.js')
                       .default,
                     { pagesPath: 'src/pages', hasRoutesInConfig: true },
                   ),
@@ -89,7 +89,7 @@ const routes = [
               ? _dvaDynamic({
                   component: () =>
                     import(/* webpackChunkName: "p__404" */ '../404'),
-                  LoadingComponent: require('D:/Repos/attention-dashboard-jsx/myApp/src/components/PageLoading/index')
+                  LoadingComponent: require('D:/Repos/Attention-monitor/myApp/src/components/PageLoading/index')
                     .default,
                 })
               : require('../404').default,
@@ -98,7 +98,7 @@ const routes = [
           {
             component: () =>
               React.createElement(
-                require('D:/Repos/attention-dashboard-jsx/myApp/node_modules/umi-build-dev/lib/plugins/404/NotFound.js')
+                require('D:/Repos/Attention-monitor/myApp/node_modules/umi-build-dev/lib/plugins/404/NotFound.js')
                   .default,
                 { pagesPath: 'src/pages', hasRoutesInConfig: true },
               ),
@@ -110,7 +110,7 @@ const routes = [
           ? _dvaDynamic({
               component: () =>
                 import(/* webpackChunkName: "p__404" */ '../404'),
-              LoadingComponent: require('D:/Repos/attention-dashboard-jsx/myApp/src/components/PageLoading/index')
+              LoadingComponent: require('D:/Repos/Attention-monitor/myApp/src/components/PageLoading/index')
                 .default,
             })
           : require('../404').default,
@@ -119,7 +119,7 @@ const routes = [
       {
         component: () =>
           React.createElement(
-            require('D:/Repos/attention-dashboard-jsx/myApp/node_modules/umi-build-dev/lib/plugins/404/NotFound.js')
+            require('D:/Repos/Attention-monitor/myApp/node_modules/umi-build-dev/lib/plugins/404/NotFound.js')
               .default,
             { pagesPath: 'src/pages', hasRoutesInConfig: true },
           ),
@@ -130,7 +130,7 @@ const routes = [
     component: __IS_BROWSER
       ? _dvaDynamic({
           component: () => import(/* webpackChunkName: "p__404" */ '../404'),
-          LoadingComponent: require('D:/Repos/attention-dashboard-jsx/myApp/src/components/PageLoading/index')
+          LoadingComponent: require('D:/Repos/Attention-monitor/myApp/src/components/PageLoading/index')
             .default,
         })
       : require('../404').default,
@@ -139,7 +139,7 @@ const routes = [
   {
     component: () =>
       React.createElement(
-        require('D:/Repos/attention-dashboard-jsx/myApp/node_modules/umi-build-dev/lib/plugins/404/NotFound.js')
+        require('D:/Repos/Attention-monitor/myApp/node_modules/umi-build-dev/lib/plugins/404/NotFound.js')
           .default,
         { pagesPath: 'src/pages', hasRoutesInConfig: true },
       ),

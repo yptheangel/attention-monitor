@@ -135,39 +135,39 @@ dmypy.json
 attention-monitor/data.csv
 
 # react app
-myApp/**/node_modules
+dashboard/**/node_modules
 # roadhog-api-doc ignore
-myApp//src/utils/request-temp.js
-myApp/_roadhog-api-doc
+dashboard//src/utils/request-temp.js
+dashboard/_roadhog-api-doc
 
 # production
-myApp/dist
-myApp/.vscode
+dashboard/dist
+dashboard/.vscode
 
 # misc
-myApp/.DS_Store
-myApp/npm-debug.log*
-myApp/yarn-error.log
+dashboard/.DS_Store
+dashboard/npm-debug.log*
+dashboard/yarn-error.log
 
-myApp/coverage
-myApp/yarn.lock
-myApp/package-lock.json
-myApp/*bak
-myApp/.vscode
+dashboard/coverage
+dashboard/yarn.lock
+dashboard/package-lock.json
+dashboard/*bak
+dashboard/.vscode
 
 # visual studio code
-myApp/.history
-myApp/*.log
-myApp/functions/*
-myApp/.temp/**
+dashboard/.history
+dashboard/*.log
+dashboard/functions/*
+dashboard/.temp/**
 
 # umi
-myApp/.umi
-myApp/.umi-production
+dashboard/.umi
+dashboard/.umi-production
 
 # screenshot
-myApp/screenshot
-myApp/.firebase
-myApp/.eslintcache
+dashboard/screenshot
+dashboard/.firebase
+dashboard/.eslintcache
 
-myApp/build
+dashboard/build
