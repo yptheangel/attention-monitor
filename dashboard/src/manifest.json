@@ -1,6 +1,6 @@
 {
-  "name": "Attention Monitor Dashboard",
-  "short_name": "Attention Monitor Dashboard",
+  "name": "OCAT Dashboard",
+  "short_name": "OCAT Dashboard",
   "display": "standalone",
   "start_url": "./?utm_source=homescreen",
   "theme_color": "#002140",

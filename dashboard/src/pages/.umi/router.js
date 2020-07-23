@@ -8,7 +8,7 @@ import {
 import dynamic from 'umi/dynamic';
 import renderRoutes from 'umi/lib/renderRoutes';
 import history from '@@/history';
-import RendererWrapper0 from 'D:/Repos/Attention-monitor/myApp/src/pages/.umi/LocaleWrapper.jsx';
+import RendererWrapper0 from 'C:/Users/willi/Projects/attention-monitor/dashboard/src/pages/.umi/LocaleWrapper.jsx';
 import { routerRedux, dynamic as _dvaDynamic } from 'dva';
 
 const Router = routerRedux.ConnectedRouter;
@@ -19,98 +19,23 @@ const routes = [
     component: __IS_BROWSER
       ? _dvaDynamic({
           component: () =>
-            import(/* webpackChunkName: "layouts__SecurityLayout" */ '../../layouts/SecurityLayout'),
-          LoadingComponent: require('D:/Repos/Attention-monitor/myApp/src/components/PageLoading/index')
+            import(/* webpackChunkName: "layouts__BasicLayout" */ '../../layouts/BasicLayout'),
+          LoadingComponent: require('C:/Users/willi/Projects/attention-monitor/dashboard/src/components/PageLoading/index')
             .default,
         })
-      : require('../../layouts/SecurityLayout').default,
+      : require('../../layouts/BasicLayout').default,
     routes: [
       {
         path: '/',
-        component: __IS_BROWSER
-          ? _dvaDynamic({
-              component: () =>
-                import(/* webpackChunkName: "layouts__BasicLayout" */ '../../layouts/BasicLayout'),
-              LoadingComponent: require('D:/Repos/Attention-monitor/myApp/src/components/PageLoading/index')
-                .default,
-            })
-          : require('../../layouts/BasicLayout').default,
-        routes: [
-          {
-            path: '/',
-            redirect: '/dashboard/analysis',
-            exact: true,
-          },
-          {
-            path: '/dashboard',
-            name: 'dashboard',
-            icon: 'dashboard',
-            routes: [
-              {
-                name: 'analysis',
-                icon: 'smile',
-                path: '/dashboard/analysis',
-                component: __IS_BROWSER
-                  ? _dvaDynamic({
-                      component: () =>
-                        import(/* webpackChunkName: "layouts__BasicLayout" */ '../dashboard/analysis'),
-                      LoadingComponent: require('D:/Repos/Attention-monitor/myApp/src/components/PageLoading/index')
-                        .default,
-                    })
-                  : require('../dashboard/analysis').default,
-                exact: true,
-              },
-              {
-                name: 'monitor',
-                icon: 'smile',
-                path: '/dashboard/monitor',
-                component: __IS_BROWSER
-                  ? _dvaDynamic({
-                      component: () =>
-                        import(/* webpackChunkName: "layouts__BasicLayout" */ '../dashboard/monitor'),
-                      LoadingComponent: require('D:/Repos/Attention-monitor/myApp/src/components/PageLoading/index')
-                        .default,
-                    })
-                  : require('../dashboard/monitor').default,
-                exact: true,
-              },
-              {
-                component: () =>
-                  React.createElement(
-                    require('D:/Repos/Attention-monitor/myApp/node_modules/umi-build-dev/lib/plugins/404/NotFound.js')
-                      .default,
-                    { pagesPath: 'src/pages', hasRoutesInConfig: true },
-                  ),
-              },
-            ],
-          },
-          {
-            component: __IS_BROWSER
-              ? _dvaDynamic({
-                  component: () =>
-                    import(/* webpackChunkName: "p__404" */ '../404'),
-                  LoadingComponent: require('D:/Repos/Attention-monitor/myApp/src/components/PageLoading/index')
-                    .default,
-                })
-              : require('../404').default,
-            exact: true,
-          },
-          {
-            component: () =>
-              React.createElement(
-                require('D:/Repos/Attention-monitor/myApp/node_modules/umi-build-dev/lib/plugins/404/NotFound.js')
-                  .default,
-                { pagesPath: 'src/pages', hasRoutesInConfig: true },
-              ),
-          },
-        ],
+        redirect: '/dashboard/analysis',
+        exact: true,
       },
       {
         component: __IS_BROWSER
           ? _dvaDynamic({
               component: () =>
                 import(/* webpackChunkName: "p__404" */ '../404'),
-              LoadingComponent: require('D:/Repos/Attention-monitor/myApp/src/components/PageLoading/index')
+              LoadingComponent: require('C:/Users/willi/Projects/attention-monitor/dashboard/src/components/PageLoading/index')
                 .default,
             })
           : require('../404').default,
@@ -119,7 +44,7 @@ const routes = [
       {
         component: () =>
           React.createElement(
-            require('D:/Repos/Attention-monitor/myApp/node_modules/umi-build-dev/lib/plugins/404/NotFound.js')
+            require('C:/Users/willi/Projects/attention-monitor/dashboard/node_modules/umi-build-dev/lib/plugins/404/NotFound.js')
               .default,
             { pagesPath: 'src/pages', hasRoutesInConfig: true },
           ),
@@ -130,7 +55,7 @@ const routes = [
     component: __IS_BROWSER
       ? _dvaDynamic({
           component: () => import(/* webpackChunkName: "p__404" */ '../404'),
-          LoadingComponent: require('D:/Repos/Attention-monitor/myApp/src/components/PageLoading/index')
+          LoadingComponent: require('C:/Users/willi/Projects/attention-monitor/dashboard/src/components/PageLoading/index')
             .default,
         })
       : require('../404').default,
@@ -139,7 +64,7 @@ const routes = [
   {
     component: () =>
       React.createElement(
-        require('D:/Repos/Attention-monitor/myApp/node_modules/umi-build-dev/lib/plugins/404/NotFound.js')
+        require('C:/Users/willi/Projects/attention-monitor/dashboard/node_modules/umi-build-dev/lib/plugins/404/NotFound.js')
           .default,
         { pagesPath: 'src/pages', hasRoutesInConfig: true },
       ),

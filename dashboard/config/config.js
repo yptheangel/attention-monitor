@@ -90,63 +90,59 @@ export default {
     // },
     {
       path: '/',
-      component: '../layouts/SecurityLayout',
+      component: '../layouts/BasicLayout',
+      // authority: ['admin', 'user'],
       routes: [
         {
           path: '/',
-          component: '../layouts/BasicLayout',
-          // authority: ['admin', 'user'],
-          routes: [
-            {
-              path: '/',
-              redirect: '/dashboard/analysis',
-            },
-            // {
-            //   path: '/welcome',
-            //   name: 'welcome',
-            //   icon: 'smile',
-            //   component: './Welcome',
-            // },
-            {
-              path: '/dashboard',
-              name: 'dashboard',
-              icon: 'dashboard',
-              routes: [
-                {
-                  name: 'analysis',
-                  icon: 'smile',
-                  path: '/dashboard/analysis',
-                  component: './dashboard/analysis',
-                },
-                {
-                  name: 'monitor',
-                  icon: 'smile',
-                  path: '/dashboard/monitor',
-                  component: './dashboard/monitor',
-                },
-              ],
-            },
-            // {
-            //   path: '/admin',
-            //   name: 'admin',
-            //   icon: 'crown',
-            //   component: './Admin',
-            //   authority: ['admin'],
-            //   routes: [
-            //     {
-            //       path: '/admin/sub-page',
-            //       name: 'sub-page',
-            //       icon: 'smile',
-            //       component: './Welcome',
-            //       authority: ['admin'],
-            //     },
-            //   ],
-            // },
-            {
-              component: './404',
-            },
-          ],
+          redirect: '/dashboard/analysis',
         },
+        // {
+        //   path: '/welcome',
+        //   name: 'welcome',
+        //   icon: 'smile',
+        //   component: './Welcome',
+        // },
+
+        
+        // {
+        //   path: '/dashboard',
+        //   name: 'dashboard',
+        //   icon: 'dashboard',
+        //   routes: [
+        //     {
+        //       name: 'analysis',
+        //       icon: 'smile',
+        //       path: '/dashboard/analysis',
+        //       component: './dashboard/analysis',
+        //     },
+        //     {
+        //       name: 'monitor',
+        //       icon: 'smile',
+        //       path: '/dashboard/monitor',
+        //       component: './dashboard/monitor',
+        //     },
+        //   ],
+        // },
+
+
+
+        // {
+        //   path: '/admin',
+        //   name: 'admin',
+        //   icon: 'crown',
+        //   component: './Admin',
+        //   authority: ['admin'],
+        //   routes: [
+        //     {
+        //       path: '/admin/sub-page',
+        //       name: 'sub-page',
+        //       icon: 'smile',
+        //       component: './Welcome',
+        //       authority: ['admin'],
+        //     },
+        //   ],
+        // },
         {
           component: './404',
         },
@@ -154,7 +150,7 @@ export default {
     },
     {
       component: './404',
-    },
+    }
   ],
   // Theme for antd: https://ant.design/docs/react/customize-theme-cn
   theme: {

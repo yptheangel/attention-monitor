@@ -28,27 +28,12 @@ class AvatarDropdown extends React.Component {
   render() {
     const {
       currentUser = {
-        avatar: '',
-        name: '',
-      },
-      menu,
-    } = this.props;
+        avatar: 'https://gw.alipayobjects.com/zos/antfincdn/XAosXuNZyF/BiazfanxmamNRoxxVxka.png',
+        name: 'SkyTeam',
+      }
+    } = {};
     const menuHeaderDropdown = (
-      <Menu className={styles.menu} selectedKeys={[]} onClick={this.onMenuClick}>
-        {menu && (
-          <Menu.Item key="center">
-            <Icon type="user" />
-            <FormattedMessage id="menu.account.center" defaultMessage="account center" />
-          </Menu.Item>
-        )}
-        {menu && (
-          <Menu.Item key="settings">
-            <Icon type="setting" />
-            <FormattedMessage id="menu.account.settings" defaultMessage="account settings" />
-          </Menu.Item>
-        )}
-        {menu && <Menu.Divider />}
-
+      <Menu className={styles.menu} selectedKeys={[]} >
         <Menu.Item key="logout">
           <Icon type="logout" />
           <FormattedMessage id="menu.account.logout" defaultMessage="logout" />
@@ -74,6 +59,4 @@ class AvatarDropdown extends React.Component {
   }
 }
 
-export default connect(({ user }) => ({
-  currentUser: user.currentUser,
-}))(AvatarDropdown);
+export default AvatarDropdown;

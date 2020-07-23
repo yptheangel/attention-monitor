@@ -21,7 +21,7 @@ export default () => (
           textAlign: 'center',
         }}
       >
-        <Icon type="smile" theme="twoTone" /> Attention Monitor Dashboard{' '}
+        <Icon type="smile" theme="twoTone" /> OCAT Dashboard{' '}
         <Icon type="heart" theme="twoTone" twoToneColor="#eb2f96" /> You
       </Typography.Title>
     </Card>

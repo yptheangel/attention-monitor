@@ -5,7 +5,7 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import findRoute, {
   getUrlQuery,
-} from 'D:/Repos/Attention-monitor/myApp/node_modules/umi-build-dev/lib/findRoute.js';
+} from 'C:/Users/willi/Projects/attention-monitor/dashboard/node_modules/umi-build-dev/lib/findRoute.js';
 
 // runtime plugins
 const plugins = require('umi/_runtimePlugin');
@@ -225,7 +225,7 @@ export default (__IS_BROWSER ? null : serverRender);
     // Umi UI Bubble
     require('../../../node_modules/umi-plugin-ui/lib/bubble').default({
       port: 3000,
-      path: 'D:/Repos/Attention-monitor/myApp',
+      path: 'C:/Users/willi/Projects/attention-monitor/dashboard',
       currentProject: '',
       isBigfish: undefined,
     });

@@ -20,10 +20,10 @@ export function _onCreate() {
     app.use(plugin);
   });
   
-  app.model({ namespace: 'global', ...(require('D:/Repos/Attention-monitor/myApp/src/models/global.js').default) });
-app.model({ namespace: 'login', ...(require('D:/Repos/Attention-monitor/myApp/src/models/login.js').default) });
-app.model({ namespace: 'setting', ...(require('D:/Repos/Attention-monitor/myApp/src/models/setting.js').default) });
-app.model({ namespace: 'user', ...(require('D:/Repos/Attention-monitor/myApp/src/models/user.js').default) });
+  app.model({ namespace: 'global', ...(require('C:/Users/willi/Projects/attention-monitor/dashboard/src/models/global.js').default) });
+app.model({ namespace: 'login', ...(require('C:/Users/willi/Projects/attention-monitor/dashboard/src/models/login.js').default) });
+app.model({ namespace: 'setting', ...(require('C:/Users/willi/Projects/attention-monitor/dashboard/src/models/setting.js').default) });
+app.model({ namespace: 'user', ...(require('C:/Users/willi/Projects/attention-monitor/dashboard/src/models/user.js').default) });
   return app;
 }
 

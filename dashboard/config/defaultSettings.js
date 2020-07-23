@@ -11,7 +11,7 @@ export default {
   menu: {
     locale: true,
   },
-  title: 'Attention Monitor',
+  title: 'OCAT',
   pwa: false,
   iconfontUrl: '',
 };

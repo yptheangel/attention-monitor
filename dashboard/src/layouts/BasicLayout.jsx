@@ -41,8 +41,8 @@ const defaultFooterDom = (
     copyright="2020 Skyteam Production"
     links={[
       {
-        key: 'Attention Monitor Dashboard',
-        title: 'Attention Monitor Dashboard',
+        key: 'OCAT Dashboard',
+        title: 'OCAT Dashboard',
         href: 'https://pro.ant.design',
         blankTarget: true,
       }
@@ -89,13 +89,13 @@ const BasicLayout = props => {
    * constructor
    */
 
-  useEffect(() => {
-    if (dispatch) {
-      dispatch({
-        type: 'user/fetchCurrent',
-      });
-    }
-  }, []);
+  // useEffect(() => {
+  //   if (dispatch) {
+  //     dispatch({
+  //       type: 'user/fetchCurrent',
+  //     });
+  //   }
+  // }, []);
   /**
    * init variables
    */
@@ -154,9 +154,9 @@ const BasicLayout = props => {
       {...props}
       {...settings}
     >
-      <Authorized authority={authorized.authority} noMatch={noMatch}>
+      {/* <Authorized authority={authorized.authority} noMatch={noMatch}>
         {children}
-      </Authorized>
+      </Authorized> */}
     </ProLayout>
   );
 };
