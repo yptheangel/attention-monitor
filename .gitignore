@@ -1,3 +1,4 @@
+*.mp4
 .idea
 model/*
 !model/put_your_model_here.txt

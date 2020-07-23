@@ -30,6 +30,10 @@ kinesis = boto3.client('kinesis', region_name=awsRegion)
 context = SerializingContext()
 socket = context.socket(zmq.PUB)
 
+# socket.connect("tcp://10.10.10.163:5555")
+socket.connect("tcp://localhost:5555")
+
+id=123
 
 # def send_record():
 #     # threading.Timer(5.0, send_record).start()
@@ -43,6 +47,9 @@ def main(userid, host):
     socket.connect("tcp://" + host + ":5555")
 
     cap = cv2.VideoCapture(0)
+    # testvideo=r"C:\Users\choowilson\Desktop\data_center\attention-monitor\jingzhi.mp4"
+    # cap = cv2.VideoCapture(testvideo)
+
     blinkCount = 0
     yawnCount = 0
 
@@ -69,9 +76,9 @@ def main(userid, host):
     shape = None
     yaw_predicted, pitch_predicted, roll_predicted=None, None, None
 
-    while True:
-        # fps_count_start_time = time.time()
 
+    while cap.isOpened():
+        # fps_count_start_time = time.time()
         ret, frame = cap.read()
         frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         frame = cv2.flip(frame, 1)
@@ -216,9 +223,9 @@ def main(userid, host):
             for idx, (x, y) in enumerate(shape):
                 cv2.circle(frame_display, (x, y), 2, (255, 255, 0), -1)
                 if idx in range(36, 48):
-                    cv2.circle(frame_display, (x, y), 2, (0, 255, 255), -1)
-                elif idx in range(60, 68):
                     cv2.circle(frame_display, (x, y), 2, (255, 0, 255), -1)
+                elif idx in range(60, 68):
+                    cv2.circle(frame_display, (x, y), 2, (0, 255, 255), -1)
 
         cv2.imshow('frame', cv2.cvtColor(frame_display, cv2.COLOR_RGB2BGR))
 
@@ -238,7 +245,6 @@ def publish(image, data):
         # else make it contiguous before sending
         image = np.ascontiguousarray(image)
         socket.send_array(image, data, copy=False)
-
 
 def draw_border(img, pt1, pt2, color, thickness, r, d):
     x1,y1 = pt1
